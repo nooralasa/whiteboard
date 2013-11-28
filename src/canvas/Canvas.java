@@ -24,6 +24,7 @@ import javax.swing.SwingUtilities;
 public class Canvas extends JPanel {
     // image where the user's drawing is stored
     private Image drawingBuffer;
+    private boolean rightClick = false;
     
     
     /**
@@ -126,6 +127,19 @@ public class Canvas extends JPanel {
     }
     
     /*
+     * Erase (draw with white line)
+     */
+    
+    private void eraseLineSegment(int x1, int y1, int x2, int y2){
+        Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
+        
+        g.setColor(Color.WHITE);
+        g.drawLine(x1,y1,x2,y2);
+        
+        this.repaint();
+    }
+    
+    /*
      * Add the mouse listener that supports the user's freehand drawing.
      */
     private void addDrawingController() {
@@ -148,6 +162,11 @@ public class Canvas extends JPanel {
         public void mousePressed(MouseEvent e) {
             lastX = e.getX();
             lastY = e.getY();
+            if(e.getButton() == MouseEvent.BUTTON3){
+                rightClick = true;
+            }else{
+                rightClick = false;
+            }
         }
 
         /*
@@ -157,7 +176,11 @@ public class Canvas extends JPanel {
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            drawLineSegment(lastX, lastY, x, y);
+            if(rightClick){
+                eraseLineSegment(lastX,lastY, x ,y);
+            }else{
+                drawLineSegment(lastX, lastY, x, y);
+            }
             lastX = x;
             lastY = y;
         }
@@ -165,7 +188,13 @@ public class Canvas extends JPanel {
         // Ignore all these other mouse events.
         public void mouseMoved(MouseEvent e) { }
         public void mouseClicked(MouseEvent e) { }
-        public void mouseReleased(MouseEvent e) { }
+        public void mouseReleased(MouseEvent e) { 
+            int x = e.getX();
+            int y = e.getY();
+            eraseLineSegment(lastX, lastY, x, y);
+            lastX = x;
+            lastY = y;
+        }
         public void mouseEntered(MouseEvent e) { }
         public void mouseExited(MouseEvent e) { }
     }
