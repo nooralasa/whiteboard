@@ -7,13 +7,17 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import canvas.Canvas;
+
 public class whiteboardServer {
     private Object lock = new Object();
     private final ServerSocket serverSocket;
-    private int numOfClients = 0;
+    private final Canvas canvas;
+    private int numOfClients = 0;    
     
-    public whiteboardServer(int port) throws IOException {
+    public whiteboardServer(int port, Canvas canvas) throws IOException {
         serverSocket = new ServerSocket(port);
+        this.canvas = canvas;
     }
     
     /**
