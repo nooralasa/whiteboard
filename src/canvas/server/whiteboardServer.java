@@ -6,20 +6,20 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import canvas.Canvas;
 
 public class whiteboardServer {
-    private Object lock = new Object();
     private final ServerSocket serverSocket;
     private final Canvas canvas;
-    private int numOfClients = 0;    
-    
+    private AtomicInteger numOfClients = new AtomicInteger(0);
+
     public whiteboardServer(int port, Canvas canvas) throws IOException {
         serverSocket = new ServerSocket(port);
         this.canvas = canvas;
     }
-    
+
     /**
      * Run the server, listening for client connections and handling them. Never
      * returns unless an exception is thrown.
@@ -30,14 +30,12 @@ public class whiteboardServer {
      */
     public void serve() throws IOException {
         final String welcome = "Welcome to this Whiteboard.";
-        final String hello = " people are playing including you. Type 'help' for help.";
+        final String hello = " people are collaborating including you. Type 'help' for help.";
         while (true) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
-            synchronized (lock) {
-                numOfClients++;
-            }
-            
+            numOfClients.getAndIncrement();
+
             // start a new thread to handle the connection
             Thread thread = new Thread(new Runnable() {
                 public void run() {
@@ -62,7 +60,7 @@ public class whiteboardServer {
 
         }
     }
-    
+
     /**
      * Handle a single client connection. Returns when client disconnects.
      * 
@@ -83,9 +81,7 @@ public class whiteboardServer {
                 if (output != null) {
                     out.println(output);
                     if (output.equals("Thank you for playing.")) {
-                        synchronized (lock) {
-                            numOfClients--;
-                        }
+                        numOfClients.getAndDecrement();
                         break;
                     }
                 }
@@ -97,7 +93,7 @@ public class whiteboardServer {
         }
     }
 
-    
+
     /**
      * Handler for client input, performing requested operations and returning an output message.
      * 
@@ -105,14 +101,15 @@ public class whiteboardServer {
      * @return message to client
      */
     private String handleRequest(String input) {
-        String regex = "(look)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
+        String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
                 + "(help)|(bye)";
         if ( ! input.matches(regex)) {
             // invalid input
             return null;
         }
         String[] tokens = input.split(" ");
-        if (tokens[1].equals("look")) {
+        if (tokens[0].equals("selectBoard")) {
+            int whiteBoardNumber = Integer.parseInt(tokens[1]);
             // 'look' request
             return canvas.getBoardMessage();
         } else if (tokens[0].equals("help")) {
@@ -139,3 +136,4 @@ public class whiteboardServer {
         throw new UnsupportedOperationException();
     }
 }
+

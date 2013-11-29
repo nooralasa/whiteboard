@@ -30,8 +30,6 @@ import javax.swing.table.DefaultTableModel;
 public class Canvas extends JPanel {
     // image where the user's drawing is stored
     private Image drawingBuffer;
-    
-   
     public boolean drawMode;
 
     /**
@@ -143,6 +141,8 @@ public class Canvas extends JPanel {
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);
+        BasicStroke s = new BasicStroke(10);
+        g.setStroke(s);
         g.drawLine(x1, y1, x2, y2);
         System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
 
@@ -174,11 +174,6 @@ public class Canvas extends JPanel {
         public void mousePressed(MouseEvent e) {
             lastX = e.getX();
             lastY = e.getY();
-            if(e.getButton() == MouseEvent.BUTTON3){
-                drawMode = true;
-            }else{
-                drawMode = false;
-            }
         }
 
         /*
@@ -188,7 +183,7 @@ public class Canvas extends JPanel {
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            if(drawMode){
+            if(!drawMode){
                 eraseLineSegment(lastX,lastY, x ,y);
             }else{
                 drawLineSegment(lastX, lastY, x, y);
@@ -200,13 +195,7 @@ public class Canvas extends JPanel {
         // Ignore all these other mouse events.
         public void mouseMoved(MouseEvent e) { }
         public void mouseClicked(MouseEvent e) { }
-        public void mouseReleased(MouseEvent e) { 
-            int x = e.getX();
-            int y = e.getY();
-            eraseLineSegment(lastX, lastY, x, y);
-            lastX = x;
-            lastY = y;
-        }
+        public void mouseReleased(MouseEvent e) { }
         public void mouseEntered(MouseEvent e) { }
         public void mouseExited(MouseEvent e) { }
     }
