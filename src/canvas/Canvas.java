@@ -174,11 +174,6 @@ public class Canvas extends JPanel {
         public void mousePressed(MouseEvent e) {
             lastX = e.getX();
             lastY = e.getY();
-            if(e.getButton() == MouseEvent.BUTTON3){
-                drawMode = true;
-            }else{
-                drawMode = false;
-            }
         }
 
         /*
