@@ -30,6 +30,8 @@ import javax.swing.table.DefaultTableModel;
 public class Canvas extends JPanel {
     // image where the user's drawing is stored
     private Image drawingBuffer;
+    
+   
     public boolean drawMode;
 
     /**
@@ -132,7 +134,7 @@ public class Canvas extends JPanel {
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
     }
-
+    
     /*
      * Draw a line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
@@ -148,7 +150,7 @@ public class Canvas extends JPanel {
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
     }
-
+    
     /*
      * Add the mouse listener that supports the user's freehand drawing.
      */
@@ -172,6 +174,11 @@ public class Canvas extends JPanel {
         public void mousePressed(MouseEvent e) {
             lastX = e.getX();
             lastY = e.getY();
+            if(e.getButton() == MouseEvent.BUTTON3){
+                drawMode = true;
+            }else{
+                drawMode = false;
+            }
         }
 
         /*
@@ -181,10 +188,10 @@ public class Canvas extends JPanel {
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            if (drawMode){
+            if(drawMode){
+                eraseLineSegment(lastX,lastY, x ,y);
+            }else{
                 drawLineSegment(lastX, lastY, x, y);
-            } else {
-                eraseLineSegment(lastX, lastY, x, y);
             }
             lastX = x;
             lastY = y;
@@ -193,7 +200,13 @@ public class Canvas extends JPanel {
         // Ignore all these other mouse events.
         public void mouseMoved(MouseEvent e) { }
         public void mouseClicked(MouseEvent e) { }
-        public void mouseReleased(MouseEvent e) { }
+        public void mouseReleased(MouseEvent e) { 
+            int x = e.getX();
+            int y = e.getY();
+            eraseLineSegment(lastX, lastY, x, y);
+            lastX = x;
+            lastY = y;
+        }
         public void mouseEntered(MouseEvent e) { }
         public void mouseExited(MouseEvent e) { }
     }
