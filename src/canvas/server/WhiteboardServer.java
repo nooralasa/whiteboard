@@ -1,6 +1,8 @@
 package canvas.server;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -9,13 +11,13 @@ import java.net.Socket;
 
 import canvas.Canvas;
 
-public class whiteboardServer {
+public class WhiteboardServer {
     private Object lock = new Object();
     private final ServerSocket serverSocket;
     private final Canvas canvas;
     private int numOfClients = 0;    
     
-    public whiteboardServer(int port, Canvas canvas) throws IOException {
+    public WhiteboardServer(int port, Canvas canvas) throws IOException {
         serverSocket = new ServerSocket(port);
         this.canvas = canvas;
     }
@@ -137,5 +139,18 @@ public class whiteboardServer {
         }
         // Should never get here--make sure to return in each of the valid cases above.
         throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Start a WhiteboardServer running on the specified port.
+     * 
+     * @param port
+     *            The network port on which the server should listen.
+     */
+    public static void runWhiteboardServer(int port) throws IOException {
+        Canvas canvas = new Canvas(800,600);
+
+        WhiteboardServer server = new WhiteboardServer(port, canvas);
+        server.serve();
     }
 }
