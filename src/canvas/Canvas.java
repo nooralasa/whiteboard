@@ -176,8 +176,6 @@ public class Canvas extends JPanel {
             lastY = e.getY();
             if(e.getButton() == MouseEvent.BUTTON3){
                 drawMode = true;
-            }else{
-                drawMode = false;
             }
         }
 
