@@ -125,7 +125,7 @@ public class Whiteboard extends JPanel {
      * Draw a line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
-    private String drawLineSegment(int x1, int y1, int x2, int y2) {
+    public String drawLineSegment(int x1, int y1, int x2, int y2) {
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.BLACK);
@@ -144,7 +144,7 @@ public class Whiteboard extends JPanel {
      * Draw a line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
-    private String eraseLineSegment(int x1, int y1, int x2, int y2) {
+    public String eraseLineSegment(int x1, int y1, int x2, int y2) {
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);
@@ -219,24 +219,41 @@ public class Whiteboard extends JPanel {
         public void mouseExited(MouseEvent e) { }
     }
 
-
     /*
      * Main program. Make a window containing a Canvas.
      */
-    public static void main(String[] args) {
+    public void makeCanvas(final int x, final int y) {
         // set up the UI (on the event-handling thread)
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 JFrame window = new JFrame("Freehand Canvas");
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
-                Whiteboard canvas = new Whiteboard(800, 600);
+                Whiteboard canvas = new Whiteboard(x, y, 1);
                 window.add(canvas, BorderLayout.CENTER);
-                ButtonPanel buttonPanel = new ButtonPanel(800, 50, canvas);
+                ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
                 window.pack();
                 window.setVisible(true);
             }
         });
+    }
+    
+    public String helpMessage() {
+        // TODO Auto-generated method stub
+        return "help";
+    }
+
+    public String getBoardMessage() {
+        // TODO Auto-generated method stub
+        return "look";
+    }
+
+    /*
+     * Main program. Make a window containing a Canvas.
+     */
+    public static void main(String[] args) {
+        Whiteboard canvas = new Whiteboard(800,600,1);
+        canvas.makeCanvas(800,600);
     }
 }
