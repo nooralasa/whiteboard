@@ -1,5 +1,96 @@
-package canvas;
+package canvas.server;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class whiteboardServer {
+    private Object lock = new Object();
+    private final ServerSocket serverSocket;
+    private int numOfClients = 0;
+    
+    public whiteboardServer(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
+    }
+    
+    /**
+     * Run the server, listening for client connections and handling them. Never
+     * returns unless an exception is thrown.
+     * 
+     * @throws IOException
+     *             if the main server socket is broken (IOExceptions from
+     *             individual clients do *not* terminate serve())
+     */
+    public void serve() throws IOException {
+        final String welcome = "Welcome to this Whiteboard.";
+        final String hello = " people are playing including you. Type 'help' for help.";
+        while (true) {
+            // block until a client connects
+            final Socket socket = serverSocket.accept();
+            synchronized (lock) {
+                numOfClients++;
+            }
+            
+            // start a new thread to handle the connection
+            Thread thread = new Thread(new Runnable() {
+                public void run() {
+                    PrintWriter out;
+                    try {
+                        out = new PrintWriter(socket.getOutputStream(), true);
+                        out.println(welcome + numOfClients + hello + "\n");
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+
+                    // the client socket object is now owned by this thread,
+                    // and mustn't be touched again in the main thread
+                    try {
+                        handleConnection(socket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+
+        }
+    }
+    
+    /**
+     * Handle a single client connection. Returns when client disconnects.
+     * 
+     * @param socket
+     *            socket where the client is connected
+     * @throws IOException
+     *             if connection has an error or terminates unexpectedly
+     */
+    private void handleConnection(Socket socket) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                socket.getInputStream()));
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+        try {
+            for (String line = in.readLine(); line != null; line = in
+                    .readLine()) {
+                String output = handleRequest(line);
+                if (output != null) {
+                    out.println(output);
+                    if (output.equals("Thank you for playing.")) {
+                        synchronized (lock) {
+                            numOfClients--;
+                        }
+                        break;
+                    }
+                }
+            }
+        } finally {
+            out.close();
+            in.close();
+            socket.close();
+        }
+    }
 
 }
