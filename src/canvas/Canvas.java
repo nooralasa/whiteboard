@@ -103,7 +103,7 @@ public class Canvas extends JPanel {
         // draw the smile -- an arc inscribed in smileBox, starting at -30 degrees (southeast)
         // and covering 120 degrees
         g.drawArc(smileBox.x, smileBox.y, smileBox.width, smileBox.height, -30, -120);
-
+        
         // draw some eyes to make it look like a smile rather than an arc
         for (int side: new int[] { -1, 1 }) {
             g.fillOval(smileCenter.x + side * eyeOffset.width - eyeSize.width/2,
@@ -126,6 +126,7 @@ public class Canvas extends JPanel {
 
         g.setColor(Color.BLACK);
         g.drawLine(x1, y1, x2, y2);
+        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
@@ -141,6 +142,7 @@ public class Canvas extends JPanel {
 
         g.setColor(Color.WHITE);
         g.drawLine(x1, y1, x2, y2);
+        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
