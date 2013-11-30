@@ -78,6 +78,7 @@ public class Whiteboard extends JPanel {
      * Make the drawing buffer entirely white.
      */
     private void fillWithWhite() {
+              
         final Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);
@@ -92,6 +93,10 @@ public class Whiteboard extends JPanel {
      * Draw a happy smile on the drawing buffer.
      */
     private void drawSmile() {
+        if (drawingBuffer == null) {
+            makeDrawingBuffer();
+        }
+        
         final Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         // all positions and sizes below are in pixels
@@ -126,7 +131,13 @@ public class Whiteboard extends JPanel {
      * pixels relative to the upper-left corner of the drawing buffer.
      */
     public String drawLineSegment(int x1, int y1, int x2, int y2) {
+        if (drawingBuffer == null) {
+            makeDrawingBuffer();
+        }
+        
+        System.out.println("here");
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
+        
 
         g.setColor(Color.BLACK);
         g.drawLine(x1, y1, x2, y2);
@@ -145,6 +156,10 @@ public class Whiteboard extends JPanel {
      * pixels relative to the upper-left corner of the drawing buffer.
      */
     public String eraseLineSegment(int x1, int y1, int x2, int y2) {
+        if (drawingBuffer == null) {
+            makeDrawingBuffer();
+        }
+        
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);

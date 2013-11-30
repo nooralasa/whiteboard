@@ -25,7 +25,7 @@ import canvas.Whiteboard;
 public class WhiteboardServer {
     private Object lock = new Object();
     private final ServerSocket serverSocket;
-    private final Whiteboard canvas;
+    private Whiteboard canvas;
     private AtomicInteger numOfClients = new AtomicInteger(0);
     
     public WhiteboardServer(int port, Whiteboard canvas) throws IOException {
@@ -93,7 +93,7 @@ public class WhiteboardServer {
                 String output = handleRequest(line);
                 if (output != null) {
                     out.println(output);
-                    if (output.equals("Thank you for playing.")) {
+                    if (output.equals("Thank you!")) {
                         numOfClients.getAndDecrement();
                         break;
                     }
@@ -130,7 +130,7 @@ public class WhiteboardServer {
         } else if (tokens[0].equals("bye")) {
             // 'bye' request
             //terminate connection
-            return null;
+            return "Thank you!";
         } else {
             int x1 = Integer.parseInt(tokens[2]);
             int y1 = Integer.parseInt(tokens[3]);
@@ -156,9 +156,10 @@ public class WhiteboardServer {
      * PORT is an optional integer in the range 0 to 65535 inclusive, specifying
      * the port the server should be listening on for incoming connections. E.g.
      * "WhiteboardServer --port 1234" starts the server listening on port 1234.
+     * @throws IOException 
      * 
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Command-line argument parsing is provided. Do not change this method.
         int port = 4444; // default port
 
