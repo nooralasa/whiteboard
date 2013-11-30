@@ -131,16 +131,20 @@ public class WhiteboardServer {
         }
         String[] tokens = input.split(" ");
         if (tokens[0].equals("selectBoard")) {
-            if (!tokens[1].equals("")) {
-                int whiteBoardNumber = Integer.parseInt(tokens[1]);                
+            if (clientWhiteboards.containsKey(canvas.getName())==true) {
+                clientWhiteboards.put(canvas.getName(),tokens[1]);
+                //int whiteboardNumber = Integer.parseInt(tokens[1]);
+                return "You are currently on board "+tokens[1];
+            } else {
+                return "Please choose a username first.";
             }
             
-
         } else if (tokens[0].equals("username")) {
-            
+            clientWhiteboards.put(tokens[1],"");
+            return "Please choose a whiteboard to work on.";
         } else if (tokens[0].equals("help")) {
             // 'help' request
-            return canvas.helpMessage();
+            return "Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2";
         } else if (tokens[0].equals("bye")) {
             // 'bye' request
             //terminate connection
