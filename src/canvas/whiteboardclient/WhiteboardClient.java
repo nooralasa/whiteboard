@@ -14,11 +14,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
@@ -54,6 +60,7 @@ public class WhiteboardClient extends JPanel {
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
         drawMode = false;
+        
     }
 
     /**
@@ -240,6 +247,8 @@ public class WhiteboardClient extends JPanel {
             public void run() {
                 System.out.println("Running this make Canvas method");
                 JFrame window = new JFrame("Freehand Canvas");
+                //popup frame
+                JFrame popup = new JFrame();
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
@@ -249,6 +258,18 @@ public class WhiteboardClient extends JPanel {
                 window.pack();
                 window.setVisible(true);
                 System.out.println("Finished this make canvas method");
+                
+                //popup asking for username
+                Object[] possibilities = null;
+                clientName = (String)JOptionPane.showInputDialog(
+                                    popup,
+                                    "Username:",
+                                    "Customized Dialog",
+                                    JOptionPane.PLAIN_MESSAGE,
+                                    null,
+                                    possibilities,
+                                    "");
+                
             }
         });
     }
