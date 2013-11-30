@@ -200,11 +200,6 @@ public class WhiteboardClient extends JPanel {
         public void mousePressed(MouseEvent e) {
             lastX = e.getX();
             lastY = e.getY();
-            if(e.getButton() == MouseEvent.BUTTON3){
-                drawMode = true;
-            }else{
-                drawMode = false;
-            }
         }
 
         /*
@@ -214,7 +209,7 @@ public class WhiteboardClient extends JPanel {
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            if(drawMode){
+            if(!drawMode){
                 eraseLineSegment(lastX,lastY, x ,y);
             }else{
                 drawLineSegment(lastX, lastY, x, y);
@@ -226,13 +221,7 @@ public class WhiteboardClient extends JPanel {
         // Ignore all these other mouse events.
         public void mouseMoved(MouseEvent e) { }
         public void mouseClicked(MouseEvent e) { }
-        public void mouseReleased(MouseEvent e) { 
-            int x = e.getX();
-            int y = e.getY();
-            eraseLineSegment(lastX, lastY, x, y);
-            lastX = x;
-            lastY = y;
-        }
+        public void mouseReleased(MouseEvent e) { }
         public void mouseEntered(MouseEvent e) { }
         public void mouseExited(MouseEvent e) { }
     }
