@@ -14,6 +14,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,7 +30,9 @@ import java.net.UnknownHostException;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
@@ -64,9 +72,9 @@ public class WhiteboardClient extends JPanel {
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
         drawMode = false;
-        connectToServer();
+        //connectToServer();
     }
-
+    /*
     public void connectToServer(){
         String hostName = "18.189.22.230";
         int portNumber = 4444;
@@ -80,12 +88,12 @@ public class WhiteboardClient extends JPanel {
     }
 
 
-    /**
+    *//**
      * Handle a single client connection. Returns when client disconnects.
      * 
      * @param socket socket where the client is connected
      * @throws IOException if connection has an error or terminates unexpectedly
-     */
+     *//*
     private void handleConnection(Socket socket) throws IOException {
         System.err.println("Connected to the Server");
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -147,6 +155,7 @@ public class WhiteboardClient extends JPanel {
         // Should never get here--make sure to return in each of the valid cases above.
         throw new UnsupportedOperationException();
     }
+    */
     
     /**
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
@@ -332,6 +341,8 @@ public class WhiteboardClient extends JPanel {
             public void run() {
                 System.out.println("Running this make Canvas method");
                 JFrame window = new JFrame("Freehand Canvas");
+                //popup frame
+                JFrame popup = new JFrame();
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
@@ -341,6 +352,18 @@ public class WhiteboardClient extends JPanel {
                 window.pack();
                 window.setVisible(true);
                 System.out.println("Finished this make canvas method");
+                
+                //popup asking for username
+                Object[] possibilities = null;
+                clientName = (String)JOptionPane.showInputDialog(
+                                    popup,
+                                    "Username:",
+                                    "Customized Dialog",
+                                    JOptionPane.PLAIN_MESSAGE,
+                                    null,
+                                    possibilities,
+                                    "");
+                
             }
         });
     }
