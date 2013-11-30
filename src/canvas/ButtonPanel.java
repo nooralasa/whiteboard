@@ -10,14 +10,16 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
+import canvas.whiteboardclient.WhiteboardClient;
+
 public class ButtonPanel extends JPanel {
     private JButton drawButton;
     private final JLabel strokeState;
-    private Whiteboard canvas;
+    private WhiteboardClient canvas;
     private Canvas canvas2;
 
 
-    public ButtonPanel(int width, int height, Whiteboard workingCanvas){
+    public ButtonPanel(int width, int height, WhiteboardClient workingCanvas){
         this.canvas = workingCanvas;
         this.setPreferredSize(new Dimension(width, height));
         GroupLayout layout = new GroupLayout(this);

@@ -1,4 +1,4 @@
-package canvas;
+package canvas.whiteboardclient;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -23,11 +23,13 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
+import canvas.ButtonPanel;
+
 /**
  * Canvas represents a drawing surface that allows the user to draw
  * on it freehand, with the mouse.
  */
-public class Whiteboard extends JPanel {
+public class WhiteboardClient extends JPanel {
     // image where the user's drawing is stored
     private Image drawingBuffer;
     //whiteboard client number
@@ -40,7 +42,7 @@ public class Whiteboard extends JPanel {
      * @param width width in pixels
      * @param height height in pixels
      */
-    public Whiteboard(int width, int height, int client) {
+    public WhiteboardClient(int width, int height, int client) {
         this.setPreferredSize(new Dimension(width, height));
         addDrawingController();
         this.client = client;
@@ -238,7 +240,7 @@ public class Whiteboard extends JPanel {
     /*
      * Main program. Make a window containing a Canvas.
      */
-    public void makeCanvas(final int x, final int y, final Whiteboard canvas) {
+    public void makeCanvas(final int x, final int y, final WhiteboardClient canvas) {
         // set up the UI (on the event-handling thread)
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -246,6 +248,8 @@ public class Whiteboard extends JPanel {
                 JFrame window = new JFrame("Freehand Canvas");
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
+                WhiteboardClient canvas = new WhiteboardClient(x, y, 1);
+
                 window.add(canvas, BorderLayout.CENTER);
                 ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
@@ -270,7 +274,8 @@ public class Whiteboard extends JPanel {
      * Main program. Make a window containing a Canvas.
      */
     public static void main(String[] args) {
-        Whiteboard canvas = new Whiteboard(800,600,1);
-        canvas.makeCanvas(800,600, canvas);
+        WhiteboardClient canvas = new WhiteboardClient(800,600,1);
+        canvas.makeCanvas(800,600,canvas);
+
     }
 }
