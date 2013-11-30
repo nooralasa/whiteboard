@@ -9,8 +9,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
@@ -24,13 +28,25 @@ import canvas.whiteboardclient.*;
 
 public class WhiteboardServer {
     private final ServerSocket serverSocket;
-    private WhiteboardClient canvas;
     private AtomicInteger numOfClients = new AtomicInteger(0);
-    //TODO: should be storing a hashmap of the canvas name to the list of strings not the actual canvas
+    private final HashMap<String, String> clientToWhiteboardsMap;
+    private final HashMap<String, ArrayList<String>> clientToCommandsMap;
+    private final BlockingQueue<String> commandsQueue;
+    private final ArrayList<String> userNames;
+    private final ArrayList<String> whiteboardNames;
+    
+    /**
+     * Creates a Whiteboard Server.
+     * @param port
+     * @throws IOException
+     */
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        canvas = new WhiteboardClient(800,600,1);        
-        canvas.makeCanvas(800, 600, canvas);
+        clientToWhiteboardsMap = new HashMap<String,String>(); // maps each clients to the whiteboard it is working on
+        clientToCommandsMap = new HashMap<String,ArrayList<String>>(); // maps each whiteboard to its commands
+        commandsQueue = new ArrayBlockingQueue<String>(100000); // queue wouldn't take MAX_VALUE as argument
+//        canvas = new WhiteboardClient(800,600,1);        
+//        canvas.makeCanvas(800, 600, canvas);
     }
 
     /**
@@ -59,7 +75,6 @@ public class WhiteboardServer {
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
-
                     // the client socket object is now owned by this thread,
                     // and mustn't be touched again in the main thread
                     try {
@@ -70,7 +85,6 @@ public class WhiteboardServer {
                 }
             });
             thread.start();
-
         }
     }
 
@@ -83,17 +97,14 @@ public class WhiteboardServer {
      *             if connection has an error or terminates unexpectedly
      */
     private void handleConnection(Socket socket) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(
-                socket.getInputStream()));
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-
         try {
-            for (String line = in.readLine(); line != null; line = in
-                    .readLine()) {
+            for (String line = in.readLine(); line != null; line = in.readLine()) {
                 String output = handleRequest(line);
                 if (output != null) {
                     out.println(output);
-                    if (output.equals("Thank you!")) {
+                    if (output.equals("Thank you!")) { // this is if thank you is the disconnect message
                         numOfClients.getAndDecrement();
                         break;
                     }
@@ -114,20 +125,39 @@ public class WhiteboardServer {
      * @return message to client
      */
     private String handleRequest(String input) {
-        String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
-                + "(help)|(bye)";
-        if ( ! input.matches(regex)) {
+        String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(username -?\\d+)"
+                + "(help)|(bye)|(new username -?\\d+ whiteboard -?\\d+)";
+        if (!input.matches(regex)) {
             // invalid input
             System.err.println("Invalid Input");
-            return null;
+            return null; // disconnects user
         }
         String[] tokens = input.split(" ");
+        if (tokens[0].equals("new")) {
+            if (clientToWhiteboardsMap.containsKey(tokens[1])) {
+                clientToWhiteboardsMap.put(canvas.getName(),tokens[1]);
+                //int whiteboardNumber = Integer.parseInt(tokens[1]);
+                return "You are currently on board "+ tokens[1];
+            } else {
+                return "Please choose a username first.";
+            }
+        }
         if (tokens[0].equals("selectBoard")) {
-            int whiteBoardNumber = Integer.parseInt(tokens[1]);
-
+            if (clientToWhiteboardsMap.containsKey(tokens[1])) {
+                clientToWhiteboardsMap.put(canvas.getName(),tokens[1]);
+                //int whiteboardNumber = Integer.parseInt(tokens[1]);
+                return "You are currently on board "+ tokens[1];
+            } else {
+                return "Please choose a username first.";
+            }
+            
+            
+        } else if (tokens[0].equals("username")) {
+            clientToWhiteboardsMap.put(tokens[1],"");
+            return "Please choose a whiteboard to work on.";
         } else if (tokens[0].equals("help")) {
             // 'help' request
-            return canvas.helpMessage();
+            return "Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2";
         } else if (tokens[0].equals("bye")) {
             // 'bye' request
             //terminate connection
