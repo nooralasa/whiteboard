@@ -14,6 +14,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -38,7 +44,10 @@ public class WhiteboardClient extends JPanel {
     private JColorChooser tcc = new JColorChooser(Color.BLACK);
     private String clientName;
     private String chosenWhiteboard;
-   
+//    private Socket clientSocket;
+//    private PrintWriter out;
+//    private BufferedReader in;
+
     public boolean drawMode;
 
     /**
@@ -47,6 +56,7 @@ public class WhiteboardClient extends JPanel {
      * @param height height in pixels
      */
     public WhiteboardClient(int width, int height, int client) {
+        // TODO: get username from the user
         this.setPreferredSize(new Dimension(width, height));
         addDrawingController();
         this.client = client;
@@ -54,8 +64,90 @@ public class WhiteboardClient extends JPanel {
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
         drawMode = false;
+        connectToServer();
     }
 
+    public void connectToServer(){
+        String hostName = "18.189.22.230";
+        int portNumber = 4444;
+        try {
+            final Socket clientSocket = new Socket(hostName, portNumber);
+            handleConnection(clientSocket);
+        } catch (IOException e) {
+            e.printStackTrace(); // but don't terminate serve()
+        } finally {
+        }     
+    }
+
+
+    /**
+     * Handle a single client connection. Returns when client disconnects.
+     * 
+     * @param socket socket where the client is connected
+     * @throws IOException if connection has an error or terminates unexpectedly
+     */
+    private void handleConnection(Socket socket) throws IOException {
+        System.err.println("Connected to the Server");
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+        // in and out are thread confined
+        try {
+            for (String line = in.readLine(); line != null; line = in.readLine()) {
+                String output = handleRequest(line);
+                if (output != null) {
+                    out.println(output);
+                } 
+                if (output != null && (((output.equals("BOOM!")) && (debug == false))||(output.equals("bye")))){
+                    System.out.println("Client Disconnected");
+                    numberOfPeople.getAndDecrement();
+                    out.close();
+                    in.close();
+                    socket.close();
+                }
+            }
+        } finally {
+            System.err.println("Client Disconnected");
+        }
+    } 
+
+    private String handleRequest(String input) {
+        String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
+                + "(help)|(bye)";
+        if ( ! input.matches(regex)) {
+            // invalid input
+            System.err.println("Invalid Input");
+            return null;
+        }
+        String[] tokens = input.split(" ");
+        if (tokens[0].equals("selectBoard")) {
+            int whiteBoardNumber = Integer.parseInt(tokens[1]);
+
+        } else if (tokens[0].equals("help")) {
+            // 'help' request
+            return canvas.helpMessage();
+        } else if (tokens[0].equals("bye")) {
+            // 'bye' request
+            //terminate connection
+            return "Thank you!";
+        } else {
+            int x1 = Integer.parseInt(tokens[2]);
+            int y1 = Integer.parseInt(tokens[3]);
+            int x2 = Integer.parseInt(tokens[4]);
+            int y2 = Integer.parseInt(tokens[5]);
+            if (tokens[1].equals("draw")) {
+                // 'draw x1 y1 x2 y2' request
+                System.out.println("Draw");
+                return canvas.drawLineSegment(x1,y1,x2,y2);
+            } else if (tokens[1].equals("erase")) {
+                // 'draw x1 y1 x2 y2' request
+                return canvas.eraseLineSegment(x1,y1,x2,y2);
+            }
+        }
+        // Should never get here--make sure to return in each of the valid cases above.
+        throw new UnsupportedOperationException();
+    }
+    
     /**
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
@@ -84,7 +176,7 @@ public class WhiteboardClient extends JPanel {
      * Make the drawing buffer entirely white.
      */
     private void fillWithWhite() {
-              
+
         final Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);
@@ -102,7 +194,7 @@ public class WhiteboardClient extends JPanel {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
         }
-        
+
         final Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         // all positions and sizes below are in pixels
@@ -118,7 +210,7 @@ public class WhiteboardClient extends JPanel {
         // draw the smile -- an arc inscribed in smileBox, starting at -30 degrees (southeast)
         // and covering 120 degrees
         g.drawArc(smileBox.x, smileBox.y, smileBox.width, smileBox.height, -30, -120);
-        
+
         // draw some eyes to make it look like a smile rather than an arc
         for (int side: new int[] { -1, 1 }) {
             g.fillOval(smileCenter.x + side * eyeOffset.width - eyeSize.width/2,
@@ -141,10 +233,10 @@ public class WhiteboardClient extends JPanel {
             makeDrawingBuffer();
             System.out.println("make a drawing buffer");
         }
-        
+
         System.out.println("here");
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
-        
+
         g.setColor(tcc.getColor());
 
 
@@ -158,7 +250,7 @@ public class WhiteboardClient extends JPanel {
 
         return returnString;
     }
-    
+
     /*
      * Draw a line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
@@ -167,7 +259,7 @@ public class WhiteboardClient extends JPanel {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
         }
-        
+
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);
@@ -181,7 +273,7 @@ public class WhiteboardClient extends JPanel {
 
         return returnString;
     }
-    
+
     /*
      * Add the mouse listener that supports the user's freehand drawing.
      */
@@ -252,7 +344,7 @@ public class WhiteboardClient extends JPanel {
             }
         });
     }
-    
+
     public String helpMessage() {
         // TODO Auto-generated method stub
         return "help";
@@ -269,6 +361,5 @@ public class WhiteboardClient extends JPanel {
     public static void main(String[] args) {
         WhiteboardClient canvas = new WhiteboardClient(800,600,1);
         canvas.makeCanvas(800,600,canvas);
-
     }
 }
