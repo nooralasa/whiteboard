@@ -17,6 +17,7 @@ import java.awt.event.MouseMotionListener;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
@@ -34,6 +35,9 @@ public class WhiteboardClient extends JPanel {
     private Image drawingBuffer;
     //whiteboard client number
     private int client;
+    private JColorChooser tcc = new JColorChooser(Color.BLACK);
+    private String clientName;
+    private String chosenWhiteboard;
    
     public boolean drawMode;
 
@@ -141,8 +145,9 @@ public class WhiteboardClient extends JPanel {
         System.out.println("here");
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         
+        g.setColor(tcc.getColor());
 
-        g.setColor(Color.BLACK);
+
         g.drawLine(x1, y1, x2, y2);
         System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
 
@@ -238,6 +243,7 @@ public class WhiteboardClient extends JPanel {
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
+                window.add(tcc, BorderLayout.PAGE_START);
                 ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
                 window.pack();
