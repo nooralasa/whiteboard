@@ -9,8 +9,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
@@ -26,7 +30,11 @@ public class WhiteboardServer {
     private final ServerSocket serverSocket;
     private WhiteboardClient canvas;
     private AtomicInteger numOfClients = new AtomicInteger(0);
+    private HashMap<String,String> clientWhiteboards = new HashMap<String,String>();
+    private HashMap<String,ArrayList<String>> clientCommands = new HashMap<String,ArrayList<String>>();
+    private BlockingQueue<String> commandsQueue = new ArrayBlockingQueue<String>(100000); //queue wouldn't take MAX_VALUE as argument
     //TODO: should be storing a hashmap of the canvas name to the list of strings not the actual canvas
+    
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         canvas = new WhiteboardClient(800,600,1);        
@@ -114,7 +122,7 @@ public class WhiteboardServer {
      * @return message to client
      */
     private String handleRequest(String input) {
-        String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
+        String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(username -?\\d+)"
                 + "(help)|(bye)";
         if ( ! input.matches(regex)) {
             // invalid input
@@ -123,8 +131,13 @@ public class WhiteboardServer {
         }
         String[] tokens = input.split(" ");
         if (tokens[0].equals("selectBoard")) {
-            int whiteBoardNumber = Integer.parseInt(tokens[1]);
+            if (!tokens[1].equals("")) {
+                int whiteBoardNumber = Integer.parseInt(tokens[1]);                
+            }
+            
 
+        } else if (tokens[0].equals("username")) {
+            
         } else if (tokens[0].equals("help")) {
             // 'help' request
             return canvas.helpMessage();
