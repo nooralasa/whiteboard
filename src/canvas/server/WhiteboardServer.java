@@ -20,16 +20,16 @@ import javax.swing.SwingUtilities;
 
 import canvas.ButtonPanel;
 import canvas.Canvas;
-import canvas.Whiteboard;
+import canvas.whiteboardclient.*;
 
 public class WhiteboardServer {
     private final ServerSocket serverSocket;
-    private Whiteboard canvas;
+    private WhiteboardClient canvas;
     private AtomicInteger numOfClients = new AtomicInteger(0);
     //TODO: should be storing a hashmap of the canvas name to the list of strings not the actual canvas
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        canvas = new Whiteboard(800,600,1);        
+        canvas = new WhiteboardClient(800,600,1);        
         canvas.makeCanvas(800, 600, canvas);
     }
 
