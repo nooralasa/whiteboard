@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
@@ -30,11 +31,11 @@ public class WhiteboardServer {
     private final ServerSocket serverSocket;
     private AtomicInteger numOfClients = new AtomicInteger(0);
     private final HashMap<String, String> clientToWhiteboardsMap;
-    private final HashMap<String, ArrayList<String>> clientToCommandsMap;
+    private final HashMap<String, ArrayList<String>> whiteboardToCommandsMap;
     private final BlockingQueue<String> commandsQueue;
     private final ArrayList<String> userNames;
     private final ArrayList<String> whiteboardNames;
-    
+
     /**
      * Creates a Whiteboard Server.
      * @param port
@@ -43,10 +44,10 @@ public class WhiteboardServer {
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         clientToWhiteboardsMap = new HashMap<String,String>(); // maps each clients to the whiteboard it is working on
-        clientToCommandsMap = new HashMap<String,ArrayList<String>>(); // maps each whiteboard to its commands
+        whiteboardToCommandsMap = new HashMap<String,ArrayList<String>>(); // maps each whiteboard to its commands
         commandsQueue = new ArrayBlockingQueue<String>(100000); // queue wouldn't take MAX_VALUE as argument
-//        canvas = new WhiteboardClient(800,600,1);        
-//        canvas.makeCanvas(800, 600, canvas);
+        userNames = new ArrayList<String>(); // may not need
+        whiteboardNames = new ArrayList<String>(); // may not need
     }
 
     /**
@@ -125,61 +126,63 @@ public class WhiteboardServer {
      * @return message to client
      */
     private String handleRequest(String input) {
-        String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(username -?\\d+)"
-                + "(help)|(bye)|(new username -?\\d+ whiteboard -?\\d+)";
+        String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
+                + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
         if (!input.matches(regex)) {
             // invalid input
             System.err.println("Invalid Input");
             return null; // disconnects user
         }
         String[] tokens = input.split(" ");
-        if (tokens[0].equals("new")) {
-            if (clientToWhiteboardsMap.containsKey(tokens[1])) {
-                clientToWhiteboardsMap.put(canvas.getName(),tokens[1]);
-                //int whiteboardNumber = Integer.parseInt(tokens[1]);
-                return "You are currently on board "+ tokens[1];
-            } else {
-                return "Please choose a username first.";
+        // Adding username to the list of usernames
+        if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
+            if (!clientToWhiteboardsMap.containsKey(tokens[2])){
+                clientToWhiteboardsMap.put(tokens[2],"");
+                return "Please choose a whiteboard to work on."; // TODO: need method here that will send the strings to the user
+            } else{ // case in which the username is already in the map
+                return "Username already taken. Please select a new username.";
             }
-        }
-        if (tokens[0].equals("selectBoard")) {
-            if (clientToWhiteboardsMap.containsKey(tokens[1])) {
-                clientToWhiteboardsMap.put(canvas.getName(),tokens[1]);
-                //int whiteboardNumber = Integer.parseInt(tokens[1]);
-                return "You are currently on board "+ tokens[1];
-            } else {
-                return "Please choose a username first.";
+        } else if (tokens[0].equals("addBoard")){
+            if (whiteboardToCommandsMap.containsKey(tokens[1])){
+                return "Whiteboard already exists.";
+            } else{
+                ArrayList<String> commandList = new ArrayList<String>();
+                whiteboardToCommandsMap.put(tokens[1], commandList);
+                return "Board " + tokens[1] + "added";
             }
-            
-            
-        } else if (tokens[0].equals("username")) {
-            clientToWhiteboardsMap.put(tokens[1],"");
-            return "Please choose a whiteboard to work on.";
         } else if (tokens[0].equals("help")) {
             // 'help' request
             return "Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2";
         } else if (tokens[0].equals("bye")) {
-            // 'bye' request
             //terminate connection
+            System.err.println("Connection terminated");
             return "Thank you!";
-        } else {
-            int x1 = Integer.parseInt(tokens[2]);
-            int y1 = Integer.parseInt(tokens[3]);
-            int x2 = Integer.parseInt(tokens[4]);
-            int y2 = Integer.parseInt(tokens[5]);
-            if (tokens[1].equals("draw")) {
-                // 'draw x1 y1 x2 y2' request
-                System.out.println("Draw");
-                return canvas.drawLineSegment(x1,y1,x2,y2);
-            } else if (tokens[1].equals("erase")) {
-                // 'draw x1 y1 x2 y2' request
-                return canvas.eraseLineSegment(x1,y1,x2,y2);
+        } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
+            if (!whiteboardToCommandsMap.containsKey(tokens[0])){
+                return "Whiteboard doesn't exist.";
+            } else{ //TODO: eventually should have something checking if the parameters are out of the boundaries
+                ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]);
+                commands.add(input);
+                whiteboardToCommandsMap.put(tokens[0], commands);
+                return input;
             }
+        } else if (tokens[1].equals("selectBoard")) { // Selecting board
+            if (!clientToWhiteboardsMap.containsKey(tokens[0])){
+                return "Username does not exist.";
+            } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
+                return "Whiteboard does not exist. Select a different board or make a board.";
+            } else{
+                clientToWhiteboardsMap.put(tokens[0], tokens[2]);
+                return "You are currently on board "+ tokens[2];
+            }
+        } else { // draw or erase condition
+            System.err.println("Invalid Input");
+            return "Invalid input.";
         }
         // Should never get here--make sure to return in each of the valid cases above.
-        throw new UnsupportedOperationException();
+        //        throw new UnsupportedOperationException();
     }
-    
+
     /**
      * Start a WhiteboardServer using the given arguments.
      * 
@@ -195,7 +198,6 @@ public class WhiteboardServer {
         // Command-line argument parsing is provided. Do not change this method.
         int port = 4444; // default port
 
-
         Queue<String> arguments = new LinkedList<String>(Arrays.asList(args));
         try {
             while (!arguments.isEmpty()) {
@@ -207,7 +209,6 @@ public class WhiteboardServer {
                             throw new IllegalArgumentException("port " + port
                                     + " out of range");
                         }
-                    
                     } else {
                         throw new IllegalArgumentException("unknown option: \""
                                 + flag + "\"");
@@ -223,7 +224,7 @@ public class WhiteboardServer {
         } catch (IllegalArgumentException iae) {
             System.err.println(iae.getMessage());
             System.err
-                    .println("usage: WhiteBoardServer [--port PORT]");
+            .println("usage: WhiteBoardServer [--port PORT]");
             return;
         }
 
@@ -233,7 +234,7 @@ public class WhiteboardServer {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Start a WhiteboardServer running on the specified po rt.
      * 
@@ -245,4 +246,3 @@ public class WhiteboardServer {
         server.serve();
     }
 }
-
