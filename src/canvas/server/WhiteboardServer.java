@@ -23,14 +23,14 @@ import canvas.Canvas;
 import canvas.Whiteboard;
 
 public class WhiteboardServer {
-    private Object lock = new Object();
     private final ServerSocket serverSocket;
     private Whiteboard canvas;
     private AtomicInteger numOfClients = new AtomicInteger(0);
-    
-    public WhiteboardServer(int port, Whiteboard canvas) throws IOException {
+    //TODO: should be storing a hashmap of the canvas name to the list of strings not the actual canvas
+    public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        this.canvas = canvas;
+        canvas = new Whiteboard(800,600,1);        
+        canvas.makeCanvas(800, 600, canvas);
     }
 
     /**
@@ -42,7 +42,7 @@ public class WhiteboardServer {
      *             individual clients do *not* terminate serve())
      */
     public void serve() throws IOException {
-        final String welcome = "Welcome to this Whiteboard.";
+        final String welcome = "Welcome to this Whiteboard. ";
         final String hello = " people are collaborating including you. Type 'help' for help.";
         while (true) {
             // block until a client connects
@@ -118,6 +118,7 @@ public class WhiteboardServer {
                 + "(help)|(bye)";
         if ( ! input.matches(regex)) {
             // invalid input
+            System.err.println("Invalid Input");
             return null;
         }
         String[] tokens = input.split(" ");
@@ -138,6 +139,7 @@ public class WhiteboardServer {
             int y2 = Integer.parseInt(tokens[5]);
             if (tokens[1].equals("draw")) {
                 // 'draw x1 y1 x2 y2' request
+                System.out.println("Draw");
                 return canvas.drawLineSegment(x1,y1,x2,y2);
             } else if (tokens[1].equals("erase")) {
                 // 'draw x1 y1 x2 y2' request
@@ -209,12 +211,7 @@ public class WhiteboardServer {
      *            The network port on which the server should listen.
      */
     public static void runWhiteboardServer(final int port) throws IOException {
-        
-        Whiteboard canvas = new Whiteboard(800,600,1);
-        
-        canvas.makeCanvas(800, 600);
-
-        WhiteboardServer server = new WhiteboardServer(port, canvas);
+        WhiteboardServer server = new WhiteboardServer(port);
         server.serve();
     }
 }

@@ -133,6 +133,7 @@ public class Whiteboard extends JPanel {
     public String drawLineSegment(int x1, int y1, int x2, int y2) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
+            System.out.println("make a drawing buffer");
         }
         
         System.out.println("here");
@@ -237,19 +238,20 @@ public class Whiteboard extends JPanel {
     /*
      * Main program. Make a window containing a Canvas.
      */
-    public void makeCanvas(final int x, final int y) {
+    public void makeCanvas(final int x, final int y, final Whiteboard canvas) {
         // set up the UI (on the event-handling thread)
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+                System.out.println("Running this make Canvas method");
                 JFrame window = new JFrame("Freehand Canvas");
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
-                Whiteboard canvas = new Whiteboard(x, y, 1);
                 window.add(canvas, BorderLayout.CENTER);
                 ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
                 window.pack();
                 window.setVisible(true);
+                System.out.println("Finished this make canvas method");
             }
         });
     }
@@ -269,6 +271,6 @@ public class Whiteboard extends JPanel {
      */
     public static void main(String[] args) {
         Whiteboard canvas = new Whiteboard(800,600,1);
-        canvas.makeCanvas(800,600);
+        canvas.makeCanvas(800,600, canvas);
     }
 }
