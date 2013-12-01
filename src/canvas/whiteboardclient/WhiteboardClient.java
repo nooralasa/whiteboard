@@ -472,6 +472,11 @@ public class WhiteboardClient extends JPanel {
         public void mousePressed(MouseEvent e) {
             lastX = e.getX();
             lastY = e.getY();
+            if(!drawMode){
+                eraseLineSegment(lastX,lastY, lastX ,lastY);
+            }else{
+                drawLineSegment(lastX, lastY, lastX, lastY);
+            }
         }
 
         /*
