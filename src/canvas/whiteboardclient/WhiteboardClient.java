@@ -14,18 +14,18 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -52,7 +52,7 @@ public class WhiteboardClient extends JPanel {
     private JColorChooser tcc = new JColorChooser(Color.BLACK);
     private String clientName;
     private String chosenWhiteboard;
-//    private Socket clientSocket;
+    private ServerSocket clientSocket;
 //    private PrintWriter out;
 //    private BufferedReader in;
 
@@ -74,51 +74,176 @@ public class WhiteboardClient extends JPanel {
         drawMode = false;
         //connectToServer();
     }
-    /*
+    
+    public WhiteboardClient(int port) throws IOException {
+        clientSocket = new ServerSocket(port);
+    }
+    
+//    /**
+//     * Connects to the server, listening for client connections and handling them. Never
+//     * returns unless an exception is thrown.
+//     * 
+//     * @throws IOException
+//     *             if the main server socket is broken (IOExceptions from
+//     *             individual clients do *not* terminate serve())
+//     */
+//    public void connectToServer() throws IOException {
+//        while (true) {
+//            // block until the server connects
+//            final Socket socket = clientSocket.accept();
+//
+//            // start a new thread to handle the connection
+//            Thread thread = new Thread(new Runnable() {
+//                public void run() {
+//                    PrintWriter out;
+//                    try {
+//                        out = new PrintWriter(socket.getOutputStream(), true);
+//                    } catch (IOException e1) {
+//                        e1.printStackTrace();
+//                    }
+//                    // the client socket object is now owned by this thread,
+//                    // and mustn't be touched again in the main thread
+//                    try {
+//                        handleConnection(socket);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//            thread.start();
+//        }
+//    }
+    
+    
     public void connectToServer(){
         String hostName = "18.189.22.230";
         int portNumber = 4444;
         try {
             final Socket clientSocket = new Socket(hostName, portNumber);
             handleConnection(clientSocket);
+        } catch (UnknownHostException e) {
+            e.printStackTrace(); // Unknown host
+            System.exit(1);
         } catch (IOException e) {
             e.printStackTrace(); // but don't terminate serve()
+            System.exit(1);
         } finally {
         }     
     }
 
 
-    *//**
+    /**
      * Handle a single client connection. Returns when client disconnects.
      * 
-     * @param socket socket where the client is connected
-     * @throws IOException if connection has an error or terminates unexpectedly
-     *//*
+     * @param socket
+     *            socket where the client is connected
+     * @throws IOException
+     *             if connection has an error or terminates unexpectedly
+     */
     private void handleConnection(Socket socket) throws IOException {
-        System.err.println("Connected to the Server");
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-
-        // in and out are thread confined
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
-                String output = handleRequest(line);
+                String output = handleResponse(line);
                 if (output != null) {
                     out.println(output);
-                } 
-                if (output != null && (((output.equals("BOOM!")) && (debug == false))||(output.equals("bye")))){
-                    System.out.println("Client Disconnected");
-                    numberOfPeople.getAndDecrement();
-                    out.close();
-                    in.close();
-                    socket.close();
+                    if (output.equals("bye")) { // this is if bye is the disconnect command
+                        break;
+                    }
                 }
             }
         } finally {
-            System.err.println("Client Disconnected");
+            out.close();
+            in.close();
+            socket.close();
         }
-    } 
-
+    }
+    
+    /**
+     * Handler for client input, performing requested operations and returning an output message.
+     * 
+     * @param input message from client
+     * @return message to client
+     */
+    private String handleResponse(String input) {
+        String regex = "(Please choose a whiteboard to work on.)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
+                + "(help)|(bye)|(new username [^=]*)|(Board [^=]* added)";
+        if (!input.matches(regex)) {
+            // invalid input
+            System.err.println("Invalid Input");
+            return null; // disconnects user
+        }
+        String[] tokens = input.split(" ");
+        // Choosing a whiteboard to work on
+        if ((tokens[1].equals("choose")) && (tokens[3].equals("whiteboard")) && (tokens[5].equals("work"))){
+            //TODO: Call method that pops up a choose whiteboard or create a new one box.
+        } else if (tokens[0].equals("Username") && tokens[2].equals("taken.")){
+            //TODO: Call method that pops up a choose username box.
+        } else if (tokens[0].equals("Whiteboard") && tokens[2].equals("exists.")) {
+            //TODO: Call method that pops up a choose whiteboard or create a new one box.
+        } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
+            //TODO: Call method that pulls that particular whiteboard up. 
+        } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
+            if (!whiteboardToCommandsMap.containsKey(tokens[0])){
+                return "Whiteboard doesn't exist.";
+            } else{ //TODO: eventually should have something checking if the parameters are out of the boundaries
+                ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]);
+                commands.add(input);
+                whiteboardToCommandsMap.put(tokens[0], commands);
+                return input;
+            }
+        } else if (tokens[1].equals("selectBoard")) { // Selecting board
+            if (!clientToWhiteboardsMap.containsKey(tokens[0])){
+                return "Username does not exist.";
+            } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
+                return "Whiteboard does not exist. Select a different board or make a board.";
+            } else{
+                clientToWhiteboardsMap.put(tokens[0], tokens[2]);
+                return "You are currently on board "+ tokens[2];
+            }
+        } else { // draw or erase condition
+            System.err.println("Invalid Input");
+            return "Invalid input.";
+        }
+        // Should never get here--make sure to return in each of the valid cases above.
+        //        throw new UnsupportedOperationException();
+    }
+    
+    
+    
+//    */
+//    /**
+//     * Handle a single client connection. Returns when client disconnects.
+//     * 
+//     * @param socket socket where the client is connected
+//     * @throws IOException if connection has an error or terminates unexpectedly
+//     */
+//    private void handleConnection(Socket socket) throws IOException {
+//        System.err.println("Connected to the Server");
+//        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+//
+//        // in and out are thread confined
+//        try {
+//            for (String line = in.readLine(); line != null; line = in.readLine()) {
+//                String output = handleRequest(line);
+//                if (output != null) {
+//                    out.println(output);
+//                } 
+//                if (output != null && (((output.equals("BOOM!")) && (debug == false))||(output.equals("bye")))){
+//                    System.out.println("Client Disconnected");
+//                    numberOfPeople.getAndDecrement();
+//                    out.close();
+//                    in.close();
+//                    socket.close();
+//                }
+//            }
+//        } finally {
+//            System.err.println("Client Disconnected");
+//        }
+//    } 
+/*
     private String handleRequest(String input) {
         String regex = "(selectBoard -?\\d+)|(-?\\d+ draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(-?\\d+ erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
                 + "(help)|(bye)";
@@ -368,15 +493,6 @@ public class WhiteboardClient extends JPanel {
         });
     }
 
-    public String helpMessage() {
-        // TODO Auto-generated method stub
-        return "help";
-    }
-
-    public String getBoardMessage() {
-        // TODO Auto-generated method stub
-        return "look";
-    }
 
     /*
      * Main program. Make a window containing a Canvas.
