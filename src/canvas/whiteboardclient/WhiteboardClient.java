@@ -55,9 +55,9 @@ public class WhiteboardClient extends JPanel {
     private ServerSocket clientSocket;
 //    private PrintWriter out;
 //    private BufferedReader in;
-
+    private JFrame window;
     public boolean drawMode;
-
+    private int strokeSize;
     /**
      * Make a canvas.
      * @param width width in pixels
@@ -71,8 +71,27 @@ public class WhiteboardClient extends JPanel {
         // note: we can't call makeDrawingBuffer here, because it only
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
-        drawMode = false;
+        drawMode = true;
         //connectToServer();
+        
+        //TODO: check against list of users (must be a unique username)
+        //popup asking for username
+        //popup frame
+        JFrame popup = new JFrame();
+        Object[] possibilities = null;
+        String s = (String)JOptionPane.showInputDialog(
+                            popup,
+                            "Input your desired username:",
+                            "Username",
+                            JOptionPane.PLAIN_MESSAGE,
+                            null, 
+                            possibilities,
+                            "");
+        this.clientName = s;
+        //while loop(s ! in serverUserList){
+        //    this.clientName = s;
+        //}else{
+        //
     }
     
     public WhiteboardClient(int port) throws IOException {
@@ -174,12 +193,15 @@ public class WhiteboardClient extends JPanel {
             //TODO: Call method that pops up a choose whiteboard or create a new one box.
         } else if (tokens[0].equals("Username") && tokens[2].equals("taken.")){
             //TODO: Call method that pops up a choose username box.
+            
         } else if (tokens[0].equals("Whiteboard") && (tokens[2].equals("exists.")||tokens[2].equals("not"))) {
             //TODO: Call method that pops up a choose whiteboard or create a new one box.
         } else if ((tokens[0].equals("Board") && tokens[2].equals("added"))||(tokens[0].equals("Board") && tokens[2].equals("added"))) {
             //TODO: Call method that pulls that particular whiteboard up. 
         } else if ((tokens[0].equals("Instructions:"))){
             //TODO: Call method that pops up a help box.
+            helpBox();
+            
         } else if (tokens[0].equals("Thank") && tokens[1].equals("you!")) {
             //terminate connection
             System.err.println("Connection terminated");
@@ -196,7 +218,24 @@ public class WhiteboardClient extends JPanel {
         //        throw new UnsupportedOperationException();
     }
     
-    
+    /**
+     * Pops up help box
+     */
+    public void helpBox(){
+      //default title and icon
+        JOptionPane.showMessageDialog(window,
+                "I'm guessing you need some help. Too bad.", "Help Message",
+                JOptionPane.WARNING_MESSAGE);
+    }
+    /**
+     * Pops up color chooser
+     */
+    public void colorChooser(){
+        JFrame popupColor = new JFrame("Color Chooser");
+        popupColor.add(tcc, BorderLayout.CENTER);
+        popupColor.pack();
+        popupColor.setVisible(true);
+    }
     
 //    */
 //    /**
@@ -306,7 +345,11 @@ public class WhiteboardClient extends JPanel {
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
     }
-
+    
+    private void createNewBoard(){
+        fillWithWhite();
+        
+    }
     /*
      * Draw a happy smile on the drawing buffer.
      */
@@ -343,7 +386,14 @@ public class WhiteboardClient extends JPanel {
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
     }
-
+    
+    /*
+     * Draw line/stroke segment size
+     */
+    public void setStrokeState(int value) {
+        this.strokeSize = value;
+    }
+    
     /*
      * Draw a line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
@@ -358,15 +408,19 @@ public class WhiteboardClient extends JPanel {
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(tcc.getColor());
-
-
+        g.setStroke(new BasicStroke(strokeSize));
+        //colors in RGB
+        String red = Integer.toString(tcc.getColor().getRed());
+        String green = Integer.toString(tcc.getColor().getGreen());
+        String blue = Integer.toString(tcc.getColor().getBlue());
+        
         g.drawLine(x1, y1, x2, y2);
-        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
+        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
-        String returnString = client + " " + "draw" +  " " + x1 + " " + y1 + " " + x2 + " " + y2;
+        String returnString = client + " " + "draw" +  " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
 
         return returnString;
     }
@@ -451,29 +505,18 @@ public class WhiteboardClient extends JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 System.out.println("Running this make Canvas method");
-                JFrame window = new JFrame("Freehand Canvas");
-                //popup frame
-                JFrame popup = new JFrame();
+                JFrame window = new JFrame(clientName);
+               
+                window.setState(java.awt.Frame.NORMAL);
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
-                window.add(tcc, BorderLayout.PAGE_START);
+                
                 ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
                 window.pack();
                 window.setVisible(true);
                 System.out.println("Finished this make canvas method");
-                
-                //popup asking for username
-                Object[] possibilities = null;
-                clientName = (String)JOptionPane.showInputDialog(
-                                    popup,
-                                    "Username:",
-                                    "Customized Dialog",
-                                    JOptionPane.PLAIN_MESSAGE,
-                                    null,
-                                    possibilities,
-                                    "");
                 
             }
         });
@@ -487,4 +530,6 @@ public class WhiteboardClient extends JPanel {
         WhiteboardClient canvas = new WhiteboardClient(800,600,1);
         canvas.makeCanvas(800,600,canvas);
     }
+
+
 }
