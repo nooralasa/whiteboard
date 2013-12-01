@@ -437,6 +437,7 @@ public class WhiteboardClient extends JPanel {
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);
+        g.setStroke(new BasicStroke(strokeSize));
         g.drawLine(x1, y1, x2, y2);
         System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
 
