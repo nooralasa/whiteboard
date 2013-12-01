@@ -145,13 +145,7 @@ public class WhiteboardClient extends JPanel {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
-                String output = handleResponse(line);
-                if (output != null) {
-                    out.println(output);
-                    if (output.equals("bye")) { // this is if bye is the disconnect command
-                        break;
-                    }
-                }
+                handleResponse(line);
             }
         } finally {
             out.close();
@@ -164,15 +158,15 @@ public class WhiteboardClient extends JPanel {
      * Handler for client input, performing requested operations and returning an output message.
      * 
      * @param input message from client
-     * @return message to client
      */
-    private String handleResponse(String input) {
+    private void handleResponse(String input) {
         String regex = "(Please choose a whiteboard to work on.)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
-                + "(help)|(bye)|(new username [^=]*)|(Board [^=]* added)";
+                + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Thank you!)|"
+                + "(Whiteboard doesn't exist.)|(Whiteboard does not exist. Select a different board or make a board.)|(You are currently on board [^=]*)|"
+                + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)";
         if (!input.matches(regex)) {
             // invalid input
             System.err.println("Invalid Input");
-            return null; // disconnects user
         }
         String[] tokens = input.split(" ");
         // Choosing a whiteboard to work on
@@ -180,31 +174,23 @@ public class WhiteboardClient extends JPanel {
             //TODO: Call method that pops up a choose whiteboard or create a new one box.
         } else if (tokens[0].equals("Username") && tokens[2].equals("taken.")){
             //TODO: Call method that pops up a choose username box.
-        } else if (tokens[0].equals("Whiteboard") && tokens[2].equals("exists.")) {
+        } else if (tokens[0].equals("Whiteboard") && (tokens[2].equals("exists.")||tokens[2].equals("not"))) {
             //TODO: Call method that pops up a choose whiteboard or create a new one box.
-        } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
+        } else if ((tokens[0].equals("Board") && tokens[2].equals("added"))||(tokens[0].equals("Board") && tokens[2].equals("added"))) {
             //TODO: Call method that pulls that particular whiteboard up. 
-        } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
-            if (!whiteboardToCommandsMap.containsKey(tokens[0])){
-                return "Whiteboard doesn't exist.";
-            } else{ //TODO: eventually should have something checking if the parameters are out of the boundaries
-                ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]);
-                commands.add(input);
-                whiteboardToCommandsMap.put(tokens[0], commands);
-                return input;
-            }
-        } else if (tokens[1].equals("selectBoard")) { // Selecting board
-            if (!clientToWhiteboardsMap.containsKey(tokens[0])){
-                return "Username does not exist.";
-            } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
-                return "Whiteboard does not exist. Select a different board or make a board.";
-            } else{
-                clientToWhiteboardsMap.put(tokens[0], tokens[2]);
-                return "You are currently on board "+ tokens[2];
-            }
+        } else if ((tokens[0].equals("Instructions:"))){
+            //TODO: Call method that pops up a help box.
+        } else if (tokens[0].equals("Thank") && tokens[1].equals("you!")) {
+            //terminate connection
+            System.err.println("Connection terminated");
+        } else if (tokens[0].equals("Whiteboard") && tokens[2].equals("exist")) { 
+            //TODO: call a method to choose another whiteboard
+        } else if ((tokens[1].equals("draw"))){
+            //TODO: call draw method
+        } else if ((tokens[1].equals("erase"))){
+            //TODO:call erase method            
         } else { // draw or erase condition
             System.err.println("Invalid Input");
-            return "Invalid input.";
         }
         // Should never get here--make sure to return in each of the valid cases above.
         //        throw new UnsupportedOperationException();
