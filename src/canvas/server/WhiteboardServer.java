@@ -30,11 +30,15 @@ import canvas.whiteboardclient.*;
 public class WhiteboardServer {
     private final ServerSocket serverSocket;
     private AtomicInteger numOfClients = new AtomicInteger(0);
-    private final HashMap<String, String> clientToWhiteboardsMap;
+    private AtomicInteger threadID = new AtomicInteger(-1);
+    private final HashMap<String, String> clientToWhiteboardMap;
     private final HashMap<String, ArrayList<String>> whiteboardToCommandsMap;
-    private final BlockingQueue<String> commandsQueue;
+    private final HashMap<String, Integer> clientToThreadNumMap;
+    private final ArrayList<BlockingQueue<String>> commandQueues;
+    private final HashMap<AtomicInteger, String> threadIDclient;
     private final ArrayList<String> userNames;
     private final ArrayList<String> whiteboardNames;
+    private final ArrayList<Socket> socketList;
 
     /**
      * Creates a Whiteboard Server.
@@ -43,13 +47,16 @@ public class WhiteboardServer {
      */
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        clientToWhiteboardsMap = new HashMap<String,String>(); // maps each clients to the whiteboard it is working on
+        clientToWhiteboardMap = new HashMap<String,String>(); // maps each client to the whiteboard it is working on
         whiteboardToCommandsMap = new HashMap<String,ArrayList<String>>(); // maps each whiteboard to its commands
-        commandsQueue = new ArrayBlockingQueue<String>(100000); // queue wouldn't take MAX_VALUE as argument
         userNames = new ArrayList<String>(); // may not need
         whiteboardNames = new ArrayList<String>(); // may not need
+        socketList = new ArrayList<Socket>();
+        commandQueues = new ArrayList<BlockingQueue<String>>();
+        clientToThreadNumMap = new HashMap<String, Integer>();
+        threadIDclient = new HashMap<AtomicInteger, String>();
     }
-
+// have a hashmap of each client to its command blocking queue
     /**
      * Run the server, listening for client connections and handling them. Never
      * returns unless an exception is thrown.
@@ -64,11 +71,17 @@ public class WhiteboardServer {
         while (true) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
+//            socketList.add(socket); // Adds each socket into the socketList
             numOfClients.getAndIncrement();
-
+            threadID.getAndIncrement();
+            BlockingQueue blockingQueue = new ArrayBlockingQueue<String>(100000);
+            commandQueues.add(blockingQueue);
+            
+            final Integer threadNum = threadID.get();
             // start a new thread to handle the connection
             Thread thread = new Thread(new Runnable() {
                 public void run() {
+                    System.out.println("New Thread Created");
                     PrintWriter out;
                     try {
                         out = new PrintWriter(socket.getOutputStream(), true);
@@ -79,13 +92,16 @@ public class WhiteboardServer {
                     // the client socket object is now owned by this thread,
                     // and mustn't be touched again in the main thread
                     try {
-                        handleConnection(socket);
+                        handleConnection(socket, threadNum);
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
             });
-            thread.start();
+            thread.start();            
         }
     }
 
@@ -96,18 +112,27 @@ public class WhiteboardServer {
      *            socket where the client is connected
      * @throws IOException
      *             if connection has an error or terminates unexpectedly
+     * @throws InterruptedException 
      */
-    private void handleConnection(Socket socket) throws IOException {
+    private void handleConnection(Socket socket, Integer threadNum) throws IOException, InterruptedException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
-                String output = handleRequest(line);
-                if (output != null) {
+                handleRequest(line, threadNum);
+                BlockingQueue commandsQueue = commandQueues.get(threadNum);
+                System.out.println("Looking in" + threadNum.toString());
+                while (commandsQueue.peek() != null){
+                    String output = (String) commandsQueue.take();
+                    System.out.println(output);
                     out.println(output);
+                    String[] tokens = output.split(" ");
                     if (output.equals("Thank you!")) { // this is if thank you is the disconnect message
                         numOfClients.getAndDecrement();
+                        // unassociated 
                         break;
+//                    } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))) {
+//                        // get the board name and for all clients associated witht he board name, use the socket list to 
                     }
                 }
             }
@@ -125,59 +150,92 @@ public class WhiteboardServer {
      * @param input message from client
      * @return message to client
      */
-    private String handleRequest(String input) {
+    private void handleRequest(String input, Integer threadNum) {
         String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
                 + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
         if (!input.matches(regex)) {
             // invalid input
             System.err.println("Invalid Input");
-            return null; // disconnects user
+            commandQueues.get(threadNum).add("Invalid Input");
+//            return null; // disconnects user
         }
         String[] tokens = input.split(" ");
         // Adding username to the list of usernames
         if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
-            if (!clientToWhiteboardsMap.containsKey(tokens[2])){
-                clientToWhiteboardsMap.put(tokens[2],"");
-                return "Please choose a whiteboard to work on."; // TODO: need method here that will send the strings to the user
+            if (!clientToWhiteboardMap.containsKey(tokens[2])){
+                clientToWhiteboardMap.put(tokens[2],"");
+                clientToThreadNumMap.put(tokens[2], threadNum);
+                commandQueues.get(threadNum).add("Please choose a whiteboard to work on.");
+//                return "Please choose a whiteboard to work on."; // TODO: need method here that will send the strings to the user
             } else{ // case in which the username is already in the map
-                return "Username already taken. Please select a new username.";
+                commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
+//                return "Username already taken. Please select a new username.";
             }
         } else if (tokens[0].equals("addBoard")){
             if (whiteboardToCommandsMap.containsKey(tokens[1])){
-                return "Whiteboard already exists.";
+                commandQueues.get(threadNum).add("Whiteboard already exists.");
+  
+//                return "Whiteboard already exists.";
             } else{
                 ArrayList<String> commandList = new ArrayList<String>();
                 whiteboardToCommandsMap.put(tokens[1], commandList);
-                return "Board " + tokens[1] + "added";
+                commandQueues.get(threadNum).add("Board " + tokens[1] + "added");
+
+//                return "Board " + tokens[1] + "added";
             }
         } else if (tokens[0].equals("help")) {
             // 'help' request
-            return "Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2";
+            commandQueues.get(threadNum).add("Help");
+
+//            return "Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2";
         } else if (tokens[0].equals("bye")) {
             //terminate connection
             System.err.println("Connection terminated");
-            return "Thank you!";
+            commandQueues.get(threadNum).add("Thank you!");
+
+//            return "Thank you!";
         } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
             if (!whiteboardToCommandsMap.containsKey(tokens[0])){
-                return "Whiteboard doesn't exist.";
+                commandQueues.get(threadNum).add("Whiteboard doesn't exist.");
+//                return "Whiteboard doesn't exist.";
             } else{ //TODO: eventually should have something checking if the parameters are out of the boundaries
                 ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]);
                 commands.add(input);
                 whiteboardToCommandsMap.put(tokens[0], commands);
-                return input;
+                for (String keys : clientToWhiteboardMap.keySet()){
+                    if (clientToWhiteboardMap.get(keys) == tokens[0]){
+                        commandQueues.get(clientToThreadNumMap.get(keys)).add(input);
+                    }
+                        
+                }
+                
+                
+                commandQueues.get(threadNum).add(input);
+
+//                return input; // probably shouldn't be returning this, b/c this should be sent by the commands queue
             }
         } else if (tokens[1].equals("selectBoard")) { // Selecting board
-            if (!clientToWhiteboardsMap.containsKey(tokens[0])){
-                return "Username does not exist.";
+            if (!clientToWhiteboardMap.containsKey(tokens[0])){
+                commandQueues.get(threadNum).add("Whiteboard doesn't exist.");
+                commandQueues.get(threadNum).add("Username does not exist.");
+
+//                return "Username does not exist.";
             } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
-                return "Whiteboard does not exist. Select a different board or make a board.";
+                commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
+
+//                return "Whiteboard does not exist. Select a different board or make a board.";
             } else{
-                clientToWhiteboardsMap.put(tokens[0], tokens[2]);
-                return "You are currently on board "+ tokens[2];
+                
+                clientToWhiteboardMap.put(tokens[0], tokens[2]);
+                commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]);
+
+//                return "You are currently on board "+ tokens[2];
             }
-        } else { // draw or erase condition
+        } else {
             System.err.println("Invalid Input");
-            return "Invalid input.";
+            commandQueues.get(threadNum).add("Invalid input.");
+
+//            return "Invalid input.";
         }
         // Should never get here--make sure to return in each of the valid cases above.
         //        throw new UnsupportedOperationException();
