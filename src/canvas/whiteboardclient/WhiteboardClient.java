@@ -420,7 +420,7 @@ public class WhiteboardClient extends JPanel {
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
-        String returnString = client + " " + "draw" +  " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
+        String returnString = client + " draw " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
 
         return returnString;
     }
