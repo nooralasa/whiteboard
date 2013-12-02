@@ -138,9 +138,8 @@ public class WhiteboardServer {
                 BlockingQueue<String> commandsQueue = commandQueues.get(threadNum);
                 while (commandsQueue.peek() != null){
                     String output = (String) commandsQueue.take();
-                    System.out.println(output); // so server can see inputs
+                    System.out.println(output); // so server can see what is being output DELETE later
                     out.println(output);
-                    String[] tokens = output.split(" ");
                     if (output.equals("Thank you!")) { // this is if thank you is the disconnect message
                         numOfClients.getAndDecrement();
                         // unassociated 
@@ -151,6 +150,7 @@ public class WhiteboardServer {
                 }
             }
         } finally {
+            System.out.println("Socket for Thread " + threadNum.toString() + " closed");
         }
     }
 
@@ -259,19 +259,21 @@ public class WhiteboardServer {
                     ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]);
                     commands.add(input);
                     whiteboardToCommandsMap.put(tokens[0], commands);
-                    
+                    System.out.println("Got here");
                     // putting commands into all relevant queues
                     for (String keys : clientToWhiteboardMap.keySet()){
-                        if (clientToWhiteboardMap.get(keys) == tokens[0]){
+                        System.out.println(keys);
+                        System.out.println(clientToWhiteboardMap.get(keys));
+                        System.out.println(tokens[0]);
+                        if (clientToWhiteboardMap.get(keys).equals(tokens[0])){
+                            System.out.println("Here");
                             commandQueues.get(clientToThreadNumMap.get(keys)).add(input);
-                            // put a print statement here saying what is placed where
+                            System.out.println(keys);
+                            System.out.println(clientToThreadNumMap.get(keys).toString());
+                            // put a print statement here saying what is placed where to debug
                         }
-
                     }
-
-
                     commandQueues.get(threadNum).add(input);
-
                     //                return input; // probably shouldn't be returning this, b/c this should be sent by the commands queue
                 }
             } else if (tokens[1].equals("selectBoard")) { // Selecting board
@@ -285,10 +287,8 @@ public class WhiteboardServer {
 
                     //                return "Whiteboard does not exist. Select a different board or make a board.";
                 } else{
-
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
                     commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]);
-
                     //                return "You are currently on board "+ tokens[2];
                 }
             }
