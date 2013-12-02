@@ -26,6 +26,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -52,12 +54,13 @@ public class WhiteboardClient extends JPanel {
     private JColorChooser tcc = new JColorChooser(Color.BLACK);
     private String clientName;
     private String chosenWhiteboard;
-    private ServerSocket clientSocket;
+    private Socket clientSocket;
 //    private PrintWriter out;
 //    private BufferedReader in;
     private JFrame window;
     public boolean drawMode;
     private int strokeSize;
+    private BlockingQueue<String> commandsQueue;
     /**
      * Make a canvas.
      * @param width width in pixels
@@ -94,8 +97,8 @@ public class WhiteboardClient extends JPanel {
         //
     }
     
-    public WhiteboardClient(int port) throws IOException {
-        clientSocket = new ServerSocket(port);
+    public WhiteboardClient() throws IOException {
+        commandsQueue = new ArrayBlockingQueue<String>(100000);
     }
     
 //    /**
@@ -106,34 +109,14 @@ public class WhiteboardClient extends JPanel {
 //     *             if the main server socket is broken (IOExceptions from
 //     *             individual clients do *not* terminate serve())
 //     */
-//    public void connectToServer() throws IOException {
-//        while (true) {
-//            // block until the server connects
-//            final Socket socket = clientSocket.accept();
-//
-//            // start a new thread to handle the connection
-//            Thread thread = new Thread(new Runnable() {
-//                public void run() {
-//                    PrintWriter out;
-//                    try {
-//                        out = new PrintWriter(socket.getOutputStream(), true);
-//                    } catch (IOException e1) {
-//                        e1.printStackTrace();
-//                    }
-//                    // the client socket object is now owned by this thread,
-//                    // and mustn't be touched again in the main thread
-//                    try {
-//                        handleConnection(socket);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-//            thread.start();
-//        }
-//    }
-    
-    
+    /**
+     * Run the server, listening for client connections and handling them. Never
+     * returns unless an exception is thrown.
+     * 
+     * @throws IOException
+     *             if the main server socket is broken (IOExceptions from
+     *             individual clients do *not* terminate serve())
+     */
     public void connectToServer(){
         String hostName = "18.189.22.230";
         int portNumber = 4444;
@@ -147,8 +130,33 @@ public class WhiteboardClient extends JPanel {
             e.printStackTrace(); // but don't terminate serve()
             System.exit(1);
         } finally {
-        }     
-    }
+        }  
+        
+        while(((Socket) clientSocket).isConnected()) {
+            // start a new thread to handle the connection
+            Thread inputThread = new Thread(new Runnable() {
+                public void run() {
+                    System.out.println("Starting client");
+                    PrintWriter out;                    
+                    try {
+                        out = new PrintWriter(clientSocket.getOutputStream(), true);
+                        out.println("Client is connected to Server");
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    // the client socket object is now owned by this thread,
+                    // and mustn't be touched again in the main thread
+                    try {
+                        handleConnection(clientSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    }
+            });
+            inputThread.start();  
+        }
+
+        }
 
 
     /**
