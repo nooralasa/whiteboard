@@ -391,7 +391,7 @@ public class WhiteboardClient extends JPanel {
         private int lastX, lastY; 
 
         /*
-         * When mouse button is pressed down, start drawing.
+         * When left mouse button is pressed down, start drawing.
          */
         public void mousePressed(MouseEvent e) {
             lastX = e.getX();

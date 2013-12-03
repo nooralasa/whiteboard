@@ -18,8 +18,8 @@ import java.util.Queue;
 
 public class WhiteboardServer {
     private final ServerSocket serverSocket;
-    private AtomicInteger numOfClients = new AtomicInteger(0);
-    private AtomicInteger threadID = new AtomicInteger(-1);
+    private final AtomicInteger numOfClients = new AtomicInteger(0);
+    private final AtomicInteger threadID = new AtomicInteger(-1);
     private final HashMap<String, String> clientToWhiteboardMap;
     private final HashMap<String, ArrayList<String>> whiteboardToCommandsMap;
     private final HashMap<String, Integer> clientToThreadNumMap;
