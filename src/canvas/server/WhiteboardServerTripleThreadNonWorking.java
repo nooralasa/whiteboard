@@ -61,7 +61,7 @@ public class WhiteboardServerTripleThreadNonWorking {
         }
     }
 
-    private synchronized void createThreads(final Socket socket, final Integer threadNum){
+    private void createThreads(final Socket socket, final Integer threadNum){
         final String welcome = "Welcome to this Whiteboard Server. ";
         final String hello = " people are collaborating including you. Type 'help' for help.";
         // start a new thread to handle the connection
