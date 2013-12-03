@@ -16,7 +16,7 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
-public class WhiteboardServer {
+public class WhiteboardServerTripleThreadNonWorking {
     private final ServerSocket serverSocket;
     private AtomicInteger numOfClients = new AtomicInteger(0);
     private AtomicInteger threadID = new AtomicInteger(-1);
@@ -31,7 +31,7 @@ public class WhiteboardServer {
      * @param port
      * @throws IOException
      */
-    public WhiteboardServer(int port) throws IOException {
+    public WhiteboardServerTripleThreadNonWorking(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         clientToWhiteboardMap = new HashMap<String, String>(); // maps each client to the whiteboard it is working on
         whiteboardToCommandsMap = new HashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
