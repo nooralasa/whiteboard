@@ -195,7 +195,6 @@ public class WhiteboardServer {
                     String message = "Done sending whiteboard names.";
                     commandQueues.get(threadNum).add(message);
                 }
-                // TODO: need method here that will send the strings to the user
             } else{ // case in which the username is already in the map
                 commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
             }
@@ -232,7 +231,7 @@ public class WhiteboardServer {
                 }
             } else if (tokens[1].equals("selectBoard")) { // Selecting board
                 if (!clientToWhiteboardMap.containsKey(tokens[0])){
-                    commandQueues.get(threadNum).add("Whiteboard doesn't exist.");
+//                    commandQueues.get(threadNum).add("Whiteboard doesn't exist.");
                     commandQueues.get(threadNum).add("Username does not exist.");
                 } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
