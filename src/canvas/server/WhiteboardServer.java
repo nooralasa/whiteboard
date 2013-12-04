@@ -11,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -32,10 +33,10 @@ public class WhiteboardServer {
      */
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        clientToWhiteboardMap = new HashMap<String, String>(); // maps each client to the whiteboard it is working on
-        whiteboardToCommandsMap = new HashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
+        clientToWhiteboardMap = Collections.synchronizedMap(new HashMap<String, String>()); // maps each client to the whiteboard it is working on
+        whiteboardToCommandsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>()); // maps each whiteboard to its commands
         commandQueues = new ArrayList<BlockingQueue<String>>();
-        clientToThreadNumMap = new HashMap<String, Integer>();
+        clientToThreadNumMap = Collections.synchronizedMap(new HashMap<String, Integer>());
         // needs to initialize with three whiteboards
     }
 
