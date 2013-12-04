@@ -60,7 +60,12 @@ public class WhiteboardServerTripleThreadNonWorking {
             createThreads(socket, threadNum);
         }
     }
-
+    
+    /**
+     * Creates and starts threads to handle inputs and outputs between the server and specific client.
+     * @param socket socket that the client is connected to
+     * @param threadNum the threadNum of the client (corresponding to the position of the commandQueue in the list)
+     */
     private void createThreads(final Socket socket, final Integer threadNum){
         final String welcome = "Welcome to this Whiteboard Server. ";
         final String hello = " people are collaborating including you. Type 'help' for help.";

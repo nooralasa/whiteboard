@@ -48,7 +48,6 @@ public class WhiteboardServer {
      *             individual clients do *not* terminate serve())
      */
     public void serve() throws IOException {
-
         while (true) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
@@ -61,6 +60,11 @@ public class WhiteboardServer {
         }
     }
 
+    /**
+     * Creates and starts threads to handle inputs and outputs between the server and specific client.
+     * @param socket socket that the client is connected to
+     * @param threadNum the threadNum of the client (corresponding to the position of the commandQueue in the list)
+     */
     private void createThreads(final Socket socket, final Integer threadNum){
         final String welcome = "Welcome to this Whiteboard Server. ";
         final String hello = " people are collaborating including you. Type 'help' for help.";
@@ -115,7 +119,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Handle a single client connection. Returns when client disconnects.
+     * Polls the output commandQueues of each client and writes items as text messages to the client's socket. 
      * 
      * @param socket
      *            socket where the client is connected
@@ -146,7 +150,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Handle a single client connection. Returns when client disconnects.
+     * Listens to the client socket for messages and passes inputs to the handleRequest().
      * 
      * @param socket
      *            socket where the client is connected
@@ -167,7 +171,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Handler for client input, performing requested operations and returning an output message.
+     * Parses client input, performing appropriate operations. 
      * 
      * @param input message from client
      * @return message to client
@@ -306,7 +310,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Start a WhiteboardServer running on the specified port.
+     * Starts a WhiteboardServer running on the specified port.
      * 
      * @param port
      *            The network port on which the server should listen.

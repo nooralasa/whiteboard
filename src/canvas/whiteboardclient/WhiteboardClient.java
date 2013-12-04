@@ -276,6 +276,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /**
+     * If there is no drawing buffer, it makes a drawing buffer. Otherwise, it copies the drawing buffer to the screen.
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
@@ -290,7 +291,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /*
-     * Make the drawing buffer and draw some starting content for it.
+     * Make the drawing buffer and makes its a white blank canvas.
      */
     private void makeDrawingBuffer() {
         drawingBuffer = createImage(getWidth(), getHeight());
@@ -298,7 +299,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /*
-     * Make the drawing buffer entirely white.
+     * Makes the drawing buffer entirely white.
      */
     private void fillWithWhite() {
         final Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
@@ -311,12 +312,6 @@ public class WhiteboardClient extends JPanel {
         this.repaint();
     }
 
-    /**
-     * Makes the board all white.
-     */
-    private void eraseBoard(){
-        fillWithWhite();
-    }
 
     /*
      * Draw line/stroke segment size
@@ -326,8 +321,9 @@ public class WhiteboardClient extends JPanel {
     }
 
     /*
-     * Draw a line between two points (x1, y1) and (x2, y2), specified in
-     * pixels relative to the upper-left corner of the drawing buffer.
+     * Draws a line segment between two points (x1,y1) and (x2,y2) 
+     * with a specified stroke size and color (in RGB), specified 
+     * in pixels relative to the upper left corner of the drawing buffer
      */
     public void drawLineSegment(int x1, int y1, int x2, int y2) {
         if (drawingBuffer == null) {

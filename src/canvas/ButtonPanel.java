@@ -23,15 +23,15 @@ public class ButtonPanel extends JPanel {
     private JSlider strokeSize;
     private JLabel strokeSizeLabel;
     private final JLabel strokeState;
-    private Whiteboard canvas;
+    private WhiteboardClient canvas;
     private Canvas canvas2;
     static final int SLIDER_MIN= 0;
     static final int SLIDER_MAX = 30;
     static final int SLIDER_INIT = 0; 
 
 
-    public ButtonPanel(int width, int height, Whiteboard canvas3){
-        this.canvas = canvas3;
+    public ButtonPanel(int width, int height, WhiteboardClient canvas){
+        this.canvas = canvas;
         this.setPreferredSize(new Dimension(width, height));
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
