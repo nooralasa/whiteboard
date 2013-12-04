@@ -50,7 +50,7 @@ public class WhiteboardClient extends JPanel {
     private Image drawingBuffer; // Image where the user's drawing is stored
     private JColorChooser tcc = new JColorChooser(Color.BLACK);
     private String clientName;
-    private String whiteboard;
+    private String whiteboard; // whiteboard name of the client
     private JFrame window;
     public boolean drawMode;
     private int strokeSize;
@@ -77,7 +77,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /**
-     * Gets the username from the user.
+     * Creates a popup window to get the username from the user.
      * @param message represents the special message to attach depending on the situation
      */
     private void getUsername(String message){
@@ -99,10 +99,10 @@ public class WhiteboardClient extends JPanel {
     }
     
     /**
-     * Gets the Whiteboard Name from the user.
+     * Creates a popup window to get a new whiteboard name from the user.
      * @param message represents the special message to attach depending on the situation
      */
-    private void getWhiteboard(String message){
+    private void getNewWhiteboardName(String message){
         JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
         Object[] possibilities = null;
         String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
@@ -200,7 +200,7 @@ public class WhiteboardClient extends JPanel {
             if (tokens[1].equals("Username")){
                 getUsername("Username already taken.\n");
             } else if (((tokens[0].equals("No")) && tokens[1].equals("existing")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
-                getWhiteboard(input + "\n");
+                getNewWhiteboardName(input + "\n");
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 existingWhiteboards.add(tokens[2]);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
@@ -208,7 +208,7 @@ public class WhiteboardClient extends JPanel {
             } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboard = tokens[1];
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
-            } else if ((tokens[0].equals("Instructions:"))){
+            } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
                 helpBox();
             } else if (tokens[0].equals("Thank") && tokens[1].equals("you!")) {
                 System.err.println("Connection terminated"); //TODO: terminate connection
@@ -443,6 +443,7 @@ public class WhiteboardClient extends JPanel {
                 window.add(buttonPanel, BorderLayout.SOUTH);
                 window.pack();
                 window.setVisible(true);
+                //TODO: need a panel that displays the other users working on the same whiteboard.
             }
         });
     }

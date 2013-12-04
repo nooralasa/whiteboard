@@ -98,7 +98,7 @@ public class WhiteboardServerTripleThreadNonWorking {
             }
         });
 
-        // start a new thread to handle outputs
+        // start a new thread to take items off the input commands queue
         Thread inputCommandsQueueThread = new Thread(new Runnable() {
             public void run() {
                 System.out.println("Starting Input Commands Queue Thread with Thread " + threadNum.toString());

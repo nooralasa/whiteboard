@@ -36,6 +36,7 @@ public class WhiteboardServer {
         whiteboardToCommandsMap = new HashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
         commandQueues = new ArrayList<BlockingQueue<String>>();
         clientToThreadNumMap = new HashMap<String, Integer>();
+        // needs to initialize with three whiteboards
     }
 
     /**
@@ -208,11 +209,11 @@ public class WhiteboardServer {
             }
         } else if (tokens[0].equals("help")) {
             // 'help' request
-            commandQueues.get(threadNum).add("Help");
+            commandQueues.get(threadNum).add("Help"); // actually probably don't need to send a help message as the help message should be stored locally on the client
         } else if (tokens[0].equals("bye")) {
             //terminate connection
             System.err.println("Connection terminated");
-            commandQueues.get(threadNum).add("Thank you!");
+            commandQueues.get(threadNum).add("Thank you!"); // probably don't need this since the client should be allowed to terminate connection on own end
         } else if (tokens.length > 1) {
             if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
                 if (!whiteboardToCommandsMap.containsKey(tokens[0])){
@@ -237,7 +238,8 @@ public class WhiteboardServer {
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
-                    commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]);
+                    commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]); 
+                    //TODO: need to add something so that sends the list of usernames to all clients and on the client side need to add something to handle this and store usernames in a list to display
                     for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
                         commandQueues.get(threadNum).add(command);
                     }
