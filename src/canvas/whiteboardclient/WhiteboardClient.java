@@ -52,7 +52,7 @@ public class WhiteboardClient extends JPanel {
     private String clientName;
     private String whiteboard; // whiteboard name of the client
     private JFrame window;
-    public boolean drawMode;
+    private boolean drawMode;
     private int strokeSize;
     private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
     private final BlockingQueue<String> outputCommandsQueue;
