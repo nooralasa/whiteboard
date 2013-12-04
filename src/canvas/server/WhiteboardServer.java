@@ -8,11 +8,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
@@ -20,10 +23,10 @@ public class WhiteboardServer {
     private final ServerSocket serverSocket;
     private final AtomicInteger numOfClients = new AtomicInteger(0);
     private final AtomicInteger threadID = new AtomicInteger(-1);
-    private final HashMap<String, String> clientToWhiteboardMap;
-    private final HashMap<String, ArrayList<String>> whiteboardToCommandsMap;
-    private final HashMap<String, Integer> clientToThreadNumMap;
-    private final ArrayList<BlockingQueue<String>> commandQueues;
+    private final ConcurrentHashMap<String, String> clientToWhiteboardMap;
+    private final ConcurrentHashMap<String, ArrayList<String>> whiteboardToCommandsMap;
+    private final ConcurrentHashMap<String, Integer> clientToThreadNumMap;
+    private final List<BlockingQueue<String>> commandQueues;
 
     /**
      * Creates a Whiteboard Server.
@@ -32,10 +35,10 @@ public class WhiteboardServer {
      */
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        clientToWhiteboardMap = new HashMap<String, String>(); // maps each client to the whiteboard it is working on
-        whiteboardToCommandsMap = new HashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
-        commandQueues = new ArrayList<BlockingQueue<String>>();
-        clientToThreadNumMap = new HashMap<String, Integer>();
+        clientToWhiteboardMap = new ConcurrentHashMap<String, String>(); // maps each client to the whiteboard it is working on
+        whiteboardToCommandsMap = new ConcurrentHashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
+        commandQueues = Collections.synchronizedList(new ArrayList<BlockingQueue<String>>());
+        clientToThreadNumMap = new ConcurrentHashMap<String, Integer>();
         // needs to initialize with three whiteboards
     }
 
