@@ -48,15 +48,14 @@ import canvas.ButtonPanel;
  */
 public class Whiteboard extends JPanel {
     private Image drawingBuffer; // Image where the user's drawing is stored
-    private JColorChooser tcc = new JColorChooser(Color.BLACK);
+    private final JColorChooser tcc = new JColorChooser(Color.BLACK);
     private String clientName;
     private String whiteboard;
     private JFrame window;
     public boolean drawMode;
     private int strokeSize;
-    private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
     private final BlockingQueue<String> outputCommandsQueue;
-    private final ArrayList<String> existingWhiteboards;
+
     /**
      * Make a canvas.
      * @param width width in pixels
@@ -69,9 +68,9 @@ public class Whiteboard extends JPanel {
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
         drawMode = true;
-        inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
+
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
-        existingWhiteboards = new ArrayList<String>();
+
         //connectToServer();
         getUsername("");
     }

@@ -26,6 +26,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -56,7 +59,7 @@ public class WhiteboardClient extends JPanel {
     private int strokeSize;
     private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
     private final BlockingQueue<String> outputCommandsQueue;
-    private final ArrayList<String> existingWhiteboards;
+    private final List<String> existingWhiteboards;
     /**
      * Make a canvas.
      * @param width width in pixels
@@ -71,7 +74,7 @@ public class WhiteboardClient extends JPanel {
         drawMode = true;
         inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
-        existingWhiteboards = new ArrayList<String>();
+        existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
         //connectToServer();
         getUsername("");
     }
