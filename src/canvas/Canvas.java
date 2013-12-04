@@ -43,7 +43,7 @@ public class Canvas extends JPanel {
         // note: we can't call makeDrawingBuffer here, because it only
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
-        drawMode = false;
+        drawMode = true;
     }
 
     /**
