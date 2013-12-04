@@ -36,6 +36,7 @@ public class WhiteboardServer {
         whiteboardToCommandsMap = new HashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
         commandQueues = new ArrayList<BlockingQueue<String>>();
         clientToThreadNumMap = new HashMap<String, Integer>();
+        // needs to initialize with three whiteboards
     }
 
     /**
@@ -47,7 +48,6 @@ public class WhiteboardServer {
      *             individual clients do *not* terminate serve())
      */
     public void serve() throws IOException {
-
         while (true) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
@@ -60,6 +60,11 @@ public class WhiteboardServer {
         }
     }
 
+    /**
+     * Creates and starts threads to handle inputs and outputs between the server and specific client.
+     * @param socket socket that the client is connected to
+     * @param threadNum the threadNum of the client (corresponding to the position of the commandQueue in the list)
+     */
     private void createThreads(final Socket socket, final Integer threadNum){
         final String welcome = "Welcome to this Whiteboard Server. ";
         final String hello = " people are collaborating including you. Type 'help' for help.";
@@ -114,7 +119,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Handle a single client connection. Returns when client disconnects.
+     * Polls the output commandQueues of each client and writes items as text messages to the client's socket. 
      * 
      * @param socket
      *            socket where the client is connected
@@ -145,7 +150,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Handle a single client connection. Returns when client disconnects.
+     * Listens to the client socket for messages and passes inputs to the handleRequest().
      * 
      * @param socket
      *            socket where the client is connected
@@ -166,7 +171,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Handler for client input, performing requested operations and returning an output message.
+     * Parses client input, performing appropriate operations. 
      * 
      * @param input message from client
      * @return message to client
@@ -208,11 +213,11 @@ public class WhiteboardServer {
             }
         } else if (tokens[0].equals("help")) {
             // 'help' request
-            commandQueues.get(threadNum).add("Help");
+            commandQueues.get(threadNum).add("Help"); // actually probably don't need to send a help message as the help message should be stored locally on the client
         } else if (tokens[0].equals("bye")) {
             //terminate connection
             System.err.println("Connection terminated");
-            commandQueues.get(threadNum).add("Thank you!");
+            commandQueues.get(threadNum).add("Thank you!"); // probably don't need this since the client should be allowed to terminate connection on own end
         } else if (tokens.length > 1) {
             if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
                 if (!whiteboardToCommandsMap.containsKey(tokens[0])){
@@ -237,7 +242,8 @@ public class WhiteboardServer {
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
-                    commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]);
+                    commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]); 
+                    //TODO: need to add something so that sends the list of usernames to all clients and on the client side need to add something to handle this and store usernames in a list to display
                     for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
                         commandQueues.get(threadNum).add(command);
                     }
@@ -304,7 +310,7 @@ public class WhiteboardServer {
     }
 
     /**
-     * Start a WhiteboardServer running on the specified port.
+     * Starts a WhiteboardServer running on the specified port.
      * 
      * @param port
      *            The network port on which the server should listen.

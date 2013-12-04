@@ -50,7 +50,7 @@ public class WhiteboardClient extends JPanel {
     private Image drawingBuffer; // Image where the user's drawing is stored
     private JColorChooser tcc = new JColorChooser(Color.BLACK);
     private String clientName;
-    private String whiteboard;
+    private String whiteboard; // whiteboard name of the client
     private JFrame window;
     public boolean drawMode;
     private int strokeSize;
@@ -77,7 +77,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /**
-     * Gets the username from the user.
+     * Creates a popup window to get the username from the user.
      * @param message represents the special message to attach depending on the situation
      */
     private void getUsername(String message){
@@ -99,10 +99,10 @@ public class WhiteboardClient extends JPanel {
     }
     
     /**
-     * Gets the Whiteboard Name from the user.
+     * Creates a popup window to get a new whiteboard name from the user.
      * @param message represents the special message to attach depending on the situation
      */
-    private void getWhiteboard(String message){
+    private void getNewWhiteboardName(String message){
         JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
         Object[] possibilities = null;
         String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
@@ -200,7 +200,7 @@ public class WhiteboardClient extends JPanel {
             if (tokens[1].equals("Username")){
                 getUsername("Username already taken.\n");
             } else if (((tokens[0].equals("No")) && tokens[1].equals("existing")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
-                getWhiteboard(input + "\n");
+                getNewWhiteboardName(input + "\n");
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 existingWhiteboards.add(tokens[2]);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
@@ -208,7 +208,7 @@ public class WhiteboardClient extends JPanel {
             } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboard = tokens[1];
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
-            } else if ((tokens[0].equals("Instructions:"))){
+            } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
                 helpBox();
             } else if (tokens[0].equals("Thank") && tokens[1].equals("you!")) {
                 System.err.println("Connection terminated"); //TODO: terminate connection
@@ -276,6 +276,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /**
+     * If there is no drawing buffer, it makes a drawing buffer. Otherwise, it copies the drawing buffer to the screen.
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
@@ -290,7 +291,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /*
-     * Make the drawing buffer and draw some starting content for it.
+     * Make the drawing buffer and makes its a white blank canvas.
      */
     private void makeDrawingBuffer() {
         drawingBuffer = createImage(getWidth(), getHeight());
@@ -298,7 +299,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /*
-     * Make the drawing buffer entirely white.
+     * Makes the drawing buffer entirely white.
      */
     private void fillWithWhite() {
         final Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
@@ -311,12 +312,6 @@ public class WhiteboardClient extends JPanel {
         this.repaint();
     }
 
-    /**
-     * Makes the board all white.
-     */
-    private void eraseBoard(){
-        fillWithWhite();
-    }
 
     /*
      * Draw line/stroke segment size
@@ -326,8 +321,9 @@ public class WhiteboardClient extends JPanel {
     }
 
     /*
-     * Draw a line between two points (x1, y1) and (x2, y2), specified in
-     * pixels relative to the upper-left corner of the drawing buffer.
+     * Draws a line segment between two points (x1,y1) and (x2,y2) 
+     * with a specified stroke size and color (in RGB), specified 
+     * in pixels relative to the upper left corner of the drawing buffer
      */
     public void drawLineSegment(int x1, int y1, int x2, int y2) {
         if (drawingBuffer == null) {
@@ -443,6 +439,7 @@ public class WhiteboardClient extends JPanel {
                 window.add(buttonPanel, BorderLayout.SOUTH);
                 window.pack();
                 window.setVisible(true);
+                //TODO: need a panel that displays the other users working on the same whiteboard.
             }
         });
     }
