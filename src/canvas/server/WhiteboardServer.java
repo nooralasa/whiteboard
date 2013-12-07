@@ -180,7 +180,7 @@ public class WhiteboardServer {
      * @return message to client
      */
     private void handleRequest(final String input, final Integer threadNum) {
-        String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
+        String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
                 + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
         if (!input.matches(regex)) { // Invalid Input
             System.err.println("Invalid Input");
@@ -231,9 +231,13 @@ public class WhiteboardServer {
                     commands.add(input);
                     whiteboardToCommandsMap.put(tokens[0], commands);
                     // putting commands into all relevant queues
+                    String keylist = "";
                     for (String keys : clientToWhiteboardMap.keySet()){
+                        keylist += keys + " ";
                         if (clientToWhiteboardMap.get(keys).equals(tokens[0])){
+                            System.out.println("got here");
                             commandQueues.get(clientToThreadNumMap.get(keys)).add(input);
+                            System.out.println("Added command to " + clientToThreadNumMap.get(keys));
                         }
                     }
                 }
@@ -246,10 +250,12 @@ public class WhiteboardServer {
                 } else{
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
                     commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]); 
+                    System.out.println(tokens[0] + " on board " + tokens[2]);
                     //TODO: need to add something so that sends the list of usernames to all clients and on the client side need to add something to handle this and store usernames in a list to display
-                    for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
-                        commandQueues.get(threadNum).add(command);
-                    }
+                    // temp disables the past history sending
+                    //                    for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
+//                        commandQueues.get(threadNum).add(command);
+//                    }
                 }
             }
         } else { // Invalid Input
