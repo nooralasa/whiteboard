@@ -55,8 +55,8 @@ public class WhiteboardClient extends JPanel {
     private String clientName;
     private String whiteboard; // whiteboard name of the client
     private JFrame window;
-    private boolean drawMode;
-    private int strokeSize;
+    public boolean drawMode;
+    public int strokeSize;
     private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
     private final BlockingQueue<String> outputCommandsQueue;
     private final List<String> existingWhiteboards;
@@ -102,9 +102,19 @@ public class WhiteboardClient extends JPanel {
  // for now needs to be fixed by erwin
         JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
         Object[] possibilities = null;
-        String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, "Select a Whiteboard:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+        String whiteboardNames = "Existing Whiteboards ";
+        for (String name : existingWhiteboards){
+            whiteboardNames += name + " ";
+        }
+        whiteboardNames += "\n";   
+        String message = "Enter the name of an existing whiteboard or type in a new whiteboard name";
+        String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message, "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
         this.whiteboard = desiredWhiteboardName;
-        outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
+        if (existingWhiteboards.contains(desiredWhiteboardName)){
+            outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
+        } else{
+            outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
+        }
     }
 
     /**
@@ -117,8 +127,6 @@ public class WhiteboardClient extends JPanel {
         String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
         this.whiteboard = desiredWhiteboardName;
         outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
-        System.out.println("GOT NEW WHITEBOARD");
-
     }
 
     /**
@@ -232,15 +240,18 @@ public class WhiteboardClient extends JPanel {
                 int y1 = Integer.parseInt(tokens[3]);
                 int x2 = Integer.parseInt(tokens[4]);
                 int y2 = Integer.parseInt(tokens[5]);
-//                int stroke = Integer.parseInt(tokens[2]);            
-                commandDraw(x1, y1, x2, y2);
+                int newStrokeSize = Integer.parseInt(tokens[6]);
+                String redValue = tokens[7];
+                String greenValue = tokens[8];
+                String blueValue = tokens[9];
+                commandDraw(x1, y1, x2, y2, newStrokeSize, redValue, greenValue, blueValue);
             } else if (tokens[0].equals(whiteboard) && (tokens[1].equals("erase"))){
                 int x1 = Integer.parseInt(tokens[2]);
                 int y1 = Integer.parseInt(tokens[3]);
                 int x2 = Integer.parseInt(tokens[4]);
                 int y2 = Integer.parseInt(tokens[5]);
-//                int stroke = Integer.parseInt(tokens[2]);            
-                commandErase(x1, y1, x2, y2);            
+                int newStrokeSize = Integer.parseInt(tokens[6]);
+                commandErase(x1, y1, x2, y2, newStrokeSize);            
             } else {
                 System.err.println("Invalid Input");
                 return ;
@@ -358,7 +369,6 @@ public class WhiteboardClient extends JPanel {
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         g.setColor(tcc.getColor());
 
-//        setStrokeState(newStrokeSize);
         g.setStroke(new BasicStroke(strokeSize));
 
         //colors in RGB
@@ -380,7 +390,7 @@ public class WhiteboardClient extends JPanel {
      * with a specified stroke size and color (in RGB), specified 
      * in pixels relative to the upper left corner of the drawing buffer
      */
-    public void commandDraw(int x1, int y1, int x2, int y2) {
+    public void commandDraw(int x1, int y1, int x2, int y2, int currentStrokeSize, String red, String green, String blue) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
             System.out.println("make a drawing buffer");
@@ -388,35 +398,32 @@ public class WhiteboardClient extends JPanel {
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         g.setColor(tcc.getColor());
 
-//        setStrokeState(newStrokeSize);
-        g.setStroke(new BasicStroke(strokeSize));
-
+        g.setStroke(new BasicStroke(currentStrokeSize));
+        int redValue = Integer.parseInt(red);
+        int greenValue = Integer.parseInt(green);
+        int blueValue = Integer.parseInt(blue);
+        tcc.setColor(redValue, greenValue, blueValue);
         //colors in RGB
-        String red = Integer.toString(tcc.getColor().getRed());
-        String green = Integer.toString(tcc.getColor().getGreen());
-        String blue = Integer.toString(tcc.getColor().getBlue());
+
         g.drawLine(x1, y1, x2, y2);
         //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
-        String drawCommand = whiteboard + " draw " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
     }
     
     /*
      * Draw a white line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
-    public void commandErase(int x1, int y1, int x2, int y2) {
+    public void commandErase(int x1, int y1, int x2, int y2, int newStroke) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
         }
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         g.setColor(Color.WHITE);
-//        setStrokeState(newStrokeSize);
-
-        g.setStroke(new BasicStroke(strokeSize));
+        g.setStroke(new BasicStroke(newStroke));
         g.drawLine(x1, y1, x2, y2);
         //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
@@ -435,8 +442,7 @@ public class WhiteboardClient extends JPanel {
         }
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         g.setColor(Color.WHITE);
-//        setStrokeState(newStrokeSize);
-
+        
         g.setStroke(new BasicStroke(strokeSize));
         g.drawLine(x1, y1, x2, y2);
         //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);

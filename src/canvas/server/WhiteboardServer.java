@@ -243,7 +243,7 @@ public class WhiteboardServer {
                 }
             } else if (tokens[1].equals("selectBoard")) { // Selecting board
                 if (!clientToWhiteboardMap.containsKey(tokens[0])){
-//                    commandQueues.get(threadNum).add("Whiteboard doesn't exist.");
+                    //                    commandQueues.get(threadNum).add("Whiteboard doesn't exist.");
                     commandQueues.get(threadNum).add("Username does not exist.");
                 } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
@@ -252,10 +252,9 @@ public class WhiteboardServer {
                     commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]); 
                     System.out.println(tokens[0] + " on board " + tokens[2]);
                     //TODO: need to add something so that sends the list of usernames to all clients and on the client side need to add something to handle this and store usernames in a list to display
-                    // temp disables the past history sending
-                    //                    for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
-//                        commandQueues.get(threadNum).add(command);
-//                    }
+                    for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
+                        commandQueues.get(threadNum).add(command);
+                    }
                 }
             }
         } else { // Invalid Input
