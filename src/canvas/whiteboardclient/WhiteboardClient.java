@@ -137,7 +137,8 @@ public class WhiteboardClient extends JPanel {
      *             individual clients do *not* terminate serve())
      */
     public void connectToServer(){
-        String hostName = "18.189.22.230";
+        //String hostName = "18.189.22.230";
+        String hostName = "18.189.29.24";
         int portNumber = 4444;
         try {
             final Socket clientSocket = new Socket(hostName, portNumber);

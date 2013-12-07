@@ -265,7 +265,7 @@ public class ButtonPanel extends JPanel {
         helpButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    canvas.helpBox();
+                    canvas3.helpBox();
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -292,22 +292,21 @@ public class ButtonPanel extends JPanel {
         strokeSizeLabel.setName("strokeSizeLabel");
         strokeSizeLabel.setText("Stroke Size");
 
-      //Create the slider
+        
+        //Create the slider
         strokeSize = new JSlider(JSlider.HORIZONTAL,
                                               SLIDER_MIN, SLIDER_MAX, SLIDER_INIT);
         strokeSize.addChangeListener(new ChangeListener(){
             @Override
             public void stateChanged(ChangeEvent e){
-                JSlider source =(JSlider) e.getSource();
-                //only when not adjusting slider
-                if (!source.getValueIsAdjusting()) {
-                    canvas.setStrokeState(source.getValue());
-                }
+                JSlider source = (JSlider) e.getSource();
+                canvas3.setStrokeState(source.getValue());
             }
         });
-        strokeSize.setMajorTickSpacing(5);
-        strokeSize.setMinorTickSpacing(1);
+        strokeSize.setMajorTickSpacing(10);
         strokeSize.setPaintTicks(true);
+
+
         strokeSize.setPaintLabels(true);
         Font font = new Font("Serif", Font.ITALIC, 15);
         strokeSize.setFont(font);
