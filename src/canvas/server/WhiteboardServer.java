@@ -80,7 +80,7 @@ public class WhiteboardServer {
             String whiteboards = "Existing Whiteboards " + whiteboard;
             commandQueues.get(threadNum).add(whiteboards);
         }
-        String message = "Done sending whiteboard names.";
+        String message = "Done sending whiteboard names";
         commandQueues.get(threadNum).add(message);
     }
 

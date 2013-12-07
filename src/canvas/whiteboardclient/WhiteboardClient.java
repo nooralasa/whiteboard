@@ -214,7 +214,7 @@ public class WhiteboardClient extends JPanel {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
                 + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Thank you!)|"
                 + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|(You are currently on board [^=]*)|"
-                + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)| (Done sending client names)";
+                + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
         if (!input.matches(regex)) {
             // invalid input
             System.err.println("Invalid Input");
@@ -231,15 +231,22 @@ public class WhiteboardClient extends JPanel {
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
                 chooseWhiteboard();
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
-                existingWhiteboards.add(tokens[2]);
+                if (!existingWhiteboards.contains(tokens[2])){
+                    existingWhiteboards.add(tokens[2]);
+                }
             }else if (tokens[0].equals("sameClient")){
-                usersInWhiteboard.add(tokens[1]);
+                if (!usersInWhiteboard.contains(tokens[1])){
+                    usersInWhiteboard.add(tokens[1]);
+                }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                System.out.println("Done sending whiteboards!");
-                // here should be the command to update the panel displaying the whiteboards
+                System.out.println("Done receiving whiteboards!");
+                System.out.println(existingWhiteboards.toString());
+                // here should be the command to update the panel displaying the whiteboards 
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 System.out.println("Done sending clients!");
+                System.out.println(usersInWhiteboard.toString());
                 // here should be the command to update the panel displaying the clients on the same whiteboard 
+                usersInWhiteboard.clear();
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboard = tokens[1];
                 outputCommandsQueue.offer(clientName + " selectBoard " + tokens[1]);
