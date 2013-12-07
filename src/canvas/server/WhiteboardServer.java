@@ -230,9 +230,9 @@ public class WhiteboardServer {
         String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
                 + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
         if (!input.matches(regex)) { // Invalid Input
-            System.err.println("Invalid Input");
+            System.err.println("Invalid Input REGEX");
             System.err.println("Not in REGEX :(");
-            commandQueues.get(threadNum).add("Invalid Input");
+            commandQueues.get(threadNum).add("Invalid Input Received by Server");
             return ;
         }
         String[] tokens = input.split(" ");
@@ -294,8 +294,8 @@ public class WhiteboardServer {
                 }
             }
         } else { // Invalid Input
-            System.err.println("Invalid Input");
-            commandQueues.get(threadNum).add("Invalid Input.");
+            System.err.println("Invalid Input NO ACTION");
+            commandQueues.get(threadNum).add("Invalid Input HERE");
         }
 
         // Should never get here--make sure to return in each of the valid cases above.
