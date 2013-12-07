@@ -67,6 +67,7 @@ public class WhiteboardClient extends JPanel {
     private final BlockingQueue<String> outputCommandsQueue;
     private final List<String> existingWhiteboards;
     private final List<String> usersInWhiteboard;
+    
     /**
      * Make a canvas.
      * @param width width in pixels
@@ -85,7 +86,6 @@ public class WhiteboardClient extends JPanel {
         usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
         connectToServer(ipAddress, portNumber);
         getUsername("");
-        System.out.println("Got here");
     }
 
     /**
@@ -101,7 +101,7 @@ public class WhiteboardClient extends JPanel {
     }
 
     /**
-     * Lets the user choose their whiteboard.
+     * Lets the user choose their whiteboard or create a new whiteboard.
      */
     private void chooseWhiteboard(){
         // all the names of the existing whiteboards are in the list of strings existingWhiteboards
@@ -124,18 +124,6 @@ public class WhiteboardClient extends JPanel {
         } else{
             outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
         }
-    }
-
-    /**
-     * Creates a popup window to get a new whiteboard name from the user.
-     * @param message represents the special message to attach depending on the situation
-     */
-    private void getNewWhiteboardName(String message){
-        JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
-        Object[] possibilities = null;
-        String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
-        this.whiteboard = desiredWhiteboardName;
-        outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
     }
 
     /**
