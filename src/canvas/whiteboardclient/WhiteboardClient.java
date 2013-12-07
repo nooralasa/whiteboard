@@ -19,6 +19,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -26,9 +27,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -67,7 +72,7 @@ public class WhiteboardClient extends JPanel {
      * @param width width in pixels
      * @param height height in pixels
      */
-    public WhiteboardClient(int width, int height) {
+    public WhiteboardClient(int width, int height, String ipAddress, int portNumber) {
         this.setPreferredSize(new Dimension(width, height));
         addDrawingController();
         // note: we can't call makeDrawingBuffer here, because it only
@@ -78,7 +83,7 @@ public class WhiteboardClient extends JPanel {
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
         existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
         usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
-        connectToServer();
+        connectToServer(ipAddress, portNumber);
         getUsername("");
         System.out.println("Got here");
     }
@@ -140,13 +145,9 @@ public class WhiteboardClient extends JPanel {
      *             if the main server socket is broken (IOExceptions from
      *             individual clients do *not* terminate serve())
      */
-    public void connectToServer(){
-        String hostName = "18.189.58.208";
-
-        //        String hostName = "18.189.29.24";
-        int portNumber = 4444;
+    public void connectToServer(String ipAddress, int portNumber){
         try {
-            final Socket clientSocket = new Socket(hostName, portNumber);
+            final Socket clientSocket = new Socket(ipAddress, portNumber);
             // start a new thread to handle the connection
             Thread inputThread = new Thread(new Runnable() {
                 public void run() {
@@ -204,7 +205,15 @@ public class WhiteboardClient extends JPanel {
             socket.close();
         }
     }
+        
+    public List<String> getExistingWhiteboards(){
+        return existingWhiteboards;
+    }
 
+    public List<String> getUsersInWhiteboard(){
+        return existingWhiteboards;
+    }
+    
     /**
      * Handler for client input, performing requested operations and returning an output message.
      * 
@@ -553,13 +562,50 @@ public class WhiteboardClient extends JPanel {
         });
     }
 
+    public static void runWhiteboardClient(String ipAddress, int port){
+        WhiteboardClient client = new WhiteboardClient(800,600, ipAddress, port);
+        client.makeCanvas(800,600,client); // TODO: what is this? should not be passing self into own method can just use this...
+    }
 
     /*
      * Main program. Make a window containing a Canvas.
      */
     public static void main(String[] args) {
-        WhiteboardClient client = new WhiteboardClient(800,600);
-        client.makeCanvas(800,600,client); // TODO: what is this? should not be passing self into own method can just use this...
+        // Command-line argument parsing is provided. Do not change this method.
+        int port = 4444; // default port
+        String ipAddress = "127.0.0.1";
+
+        Queue<String> arguments = new LinkedList<String>(Arrays.asList(args));
+        try {
+            while ( !arguments.isEmpty()) {
+                String flag = arguments.remove();
+                System.out.println(flag);
+                try {
+                    if (flag.equals("--ip")) {
+                        ipAddress = arguments.remove();
+                        System.out.println(ipAddress);
+                    } else if (flag.equals("--port")) {
+                        port = Integer.parseInt(arguments.remove());
+                        System.out.println(port);
+                        if (port < 0 || port > 65535) {
+                            throw new IllegalArgumentException("port " + port + " out of range");
+                        }
+                    } else {
+                        throw new IllegalArgumentException("unknown option: \"" + flag + "\"");
+                    }
+                } catch (NoSuchElementException nsee) {
+                    throw new IllegalArgumentException("missing argument for " + flag);
+                } catch (NumberFormatException nfe) {
+                    throw new IllegalArgumentException("unable to parse number for " + flag);
+                }
+            }
+        } catch (IllegalArgumentException iae) {
+            System.err.println(iae.getMessage());
+            System.err.println("usage: Whiteboard Client [--ip ipAddress] [--port PORT]");
+            return;
+        }
+        runWhiteboardClient(ipAddress, port);
+        System.out.println("Got here");
     }
 
 }
