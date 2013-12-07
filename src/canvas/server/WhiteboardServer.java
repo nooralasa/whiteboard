@@ -8,7 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
@@ -23,9 +23,9 @@ public class WhiteboardServer {
     private final ServerSocket serverSocket;
     private final AtomicInteger numOfClients = new AtomicInteger(0);
     private final AtomicInteger threadID = new AtomicInteger(-1);
-    private final ConcurrentHashMap<String, String> clientToWhiteboardMap;
-    private final ConcurrentHashMap<String, ArrayList<String>> whiteboardToCommandsMap;
-    private final ConcurrentHashMap<String, Integer> clientToThreadNumMap;
+    private final Map<String, String> clientToWhiteboardMap;
+    private final Map<String, ArrayList<String>> whiteboardToCommandsMap;
+    private final Map<String, Integer> clientToThreadNumMap;
     private final List<BlockingQueue<String>> commandQueues;
 
     /**
@@ -35,11 +35,10 @@ public class WhiteboardServer {
      */
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        clientToWhiteboardMap = new ConcurrentHashMap<String, String>(); // maps each client to the whiteboard it is working on
-        whiteboardToCommandsMap = new ConcurrentHashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
-
+        clientToWhiteboardMap = Collections.synchronizedMap(new HashMap<String, String>()); // maps each client to the whiteboard it is working on
+        whiteboardToCommandsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>()); // maps each whiteboard to its commands
         commandQueues = Collections.synchronizedList(new ArrayList<BlockingQueue<String>>());
-        clientToThreadNumMap = new ConcurrentHashMap<String, Integer>();
+        clientToThreadNumMap = Collections.synchronizedMap(new HashMap<String, Integer>());
         createBoards();
     }
 
