@@ -171,6 +171,11 @@ public class WhiteboardClient1 {
             return ;
         }
         String[] tokens = input.split(" ");
+        System.err.println("Tokens coming");
+        for (String token : tokens){
+            System.err.println(token);
+        }
+        System.err.println("No more token");
         // Choosing a whiteboard to work on
         if (tokens.length > 1) {
             System.out.println("Token length > 1");
@@ -230,12 +235,12 @@ public class WhiteboardClient1 {
                 int newStrokeSize = Integer.parseInt(tokens[6]);
                 whiteboards.getCanvas().commandErase(x1, y1, x2, y2, newStrokeSize);            
             } else {
-                System.err.println("Invalid Input Tokens > 1");
+                System.err.println("Invalid Input Tokens greater than 1");
                 System.err.println(input);
                 return ;
             }
         } else {
-            System.err.println("Invalid Input Tokens < 1");
+            System.err.println("Invalid Input Tokens less than 1");
             System.err.println(input);
             return ;
         }
@@ -272,7 +277,7 @@ public class WhiteboardClient1 {
     }
 
     public static void runWhiteboardClient(String ipAddress, int port){
-        WhiteboardClient client1 = new WhiteboardClient(800,600, ipAddress, port);
+        WhiteboardClient1 client1 = new WhiteboardClient1(800,600, ipAddress, port);
     }
 
     /*
