@@ -49,6 +49,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import canvas.ButtonPanel;
+import canvas.SidePanel;
 //import canvas.SidePanel;
 
 /**
@@ -540,9 +541,9 @@ public class WhiteboardClient extends JPanel {
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
                 ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
-                //                SidePanel sidePanel = new SidePanel(100, y, canvas);
+                SidePanel sidePanel = new SidePanel(250, y, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
-                //                window.add(sidePanel, BorderLayout.EAST);
+                window.add(sidePanel, BorderLayout.EAST);
                 window.pack();
                 window.setVisible(true);
                 //TODO: need a panel that displays the other users working on the same whiteboard.
