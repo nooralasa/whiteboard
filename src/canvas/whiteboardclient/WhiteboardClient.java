@@ -75,7 +75,7 @@ public class WhiteboardClient extends JPanel {
         inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
         existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
-        //connectToServer();
+        connectToServer();
         getUsername("");
     }
 
@@ -90,17 +90,23 @@ public class WhiteboardClient extends JPanel {
         this.clientName = desiredClientName;
         outputCommandsQueue.offer("new username " + desiredClientName);
     }
-    
+
     /**
      * Lets the user choose their whiteboard.
      */
     private void chooseWhiteboard(){
         // all the names of the existing whiteboards are in the list of strings existingWhiteboards
         // should use a jcombo box or something to display the choices
-        // could maybe have a textfield similar to the getusername one to choose own.
+        // could maybe `have a textfield similar to the getusername one to choose own.
         // MAKE SURE to set the selected whiteboard as this.whiteboard and then wipe the board
+ // for now needs to be fixed by erwin
+        JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
+        Object[] possibilities = null;
+        String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, "Select a Whiteboard:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+        this.whiteboard = desiredWhiteboardName;
+        outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
     }
-    
+
     /**
      * Creates a popup window to get a new whiteboard name from the user.
      * @param message represents the special message to attach depending on the situation
@@ -111,6 +117,8 @@ public class WhiteboardClient extends JPanel {
         String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
         this.whiteboard = desiredWhiteboardName;
         outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
+        System.out.println("GOT NEW WHITEBOARD");
+
     }
 
     /**
@@ -175,6 +183,7 @@ public class WhiteboardClient extends JPanel {
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 handleResponse(line);
+                System.out.println("Server Response: " + line);
             }
         } finally {
             in.close();
@@ -191,7 +200,7 @@ public class WhiteboardClient extends JPanel {
         String regex = "(Existing Whiteboards [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
                 + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Thank you!)|"
                 + "(No existing whiteboards.)|(Whiteboard does not exist. Select a different board or make a board.)|(You are currently on board [^=]*)|"
-                + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboards)";
+                + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names.)";
         if (!input.matches(regex)) {
             // invalid input
             System.err.println("Invalid Input");
@@ -207,18 +216,31 @@ public class WhiteboardClient extends JPanel {
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 existingWhiteboards.add(tokens[2]);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
+                System.out.println("GOT HERE");
                 chooseWhiteboard();
             } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboard = tokens[1];
+                outputCommandsQueue.offer(clientName + " selectBoard " + tokens[1]);
+
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
             } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
                 helpBox();
             } else if (tokens[0].equals("Thank") && tokens[1].equals("you!")) {
                 System.err.println("Connection terminated"); //TODO: terminate connection
             } else if (tokens[0].equals(whiteboard) && (tokens[1].equals("draw"))){
-                //TODO: call draw method and use the appropriate tokens for the parameters
+                int x1 = Integer.parseInt(tokens[2]);
+                int y1 = Integer.parseInt(tokens[3]);
+                int x2 = Integer.parseInt(tokens[4]);
+                int y2 = Integer.parseInt(tokens[5]);
+//                int stroke = Integer.parseInt(tokens[2]);            
+                commandDraw(x1, y1, x2, y2);
             } else if (tokens[0].equals(whiteboard) && (tokens[1].equals("erase"))){
-                //TODO:call erase method and use the appropriate tokens for the parameters           
+                int x1 = Integer.parseInt(tokens[2]);
+                int y1 = Integer.parseInt(tokens[3]);
+                int x2 = Integer.parseInt(tokens[4]);
+                int y2 = Integer.parseInt(tokens[5]);
+//                int stroke = Integer.parseInt(tokens[2]);            
+                commandErase(x1, y1, x2, y2);            
             } else {
                 System.err.println("Invalid Input");
                 return ;
@@ -246,7 +268,7 @@ public class WhiteboardClient extends JPanel {
             while (true){ // constantly poll the commands queue //TODO: check with TA what to do about this since when the socket disconnects will still be in the while loop
                 while (outputCommandsQueue.peek() != null){
                     String output = (String) outputCommandsQueue.take();
-                    System.out.println(output); // so server can see what is being output DELETE later
+                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
                     out.println(output);
                     if (output.equals("Thank you!")) { // this is if thank you is the disconnect message
                         out.close();
@@ -335,13 +357,14 @@ public class WhiteboardClient extends JPanel {
         }
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         g.setColor(tcc.getColor());
+
+//        setStrokeState(newStrokeSize);
         g.setStroke(new BasicStroke(strokeSize));
 
         //colors in RGB
         String red = Integer.toString(tcc.getColor().getRed());
         String green = Integer.toString(tcc.getColor().getGreen());
         String blue = Integer.toString(tcc.getColor().getBlue());
-
         g.drawLine(x1, y1, x2, y2);
         //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
 
@@ -353,6 +376,56 @@ public class WhiteboardClient extends JPanel {
     }
 
     /*
+     * Draws a line segment between two points (x1,y1) and (x2,y2) 
+     * with a specified stroke size and color (in RGB), specified 
+     * in pixels relative to the upper left corner of the drawing buffer
+     */
+    public void commandDraw(int x1, int y1, int x2, int y2) {
+        if (drawingBuffer == null) {
+            makeDrawingBuffer();
+            System.out.println("make a drawing buffer");
+        }
+        Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
+        g.setColor(tcc.getColor());
+
+//        setStrokeState(newStrokeSize);
+        g.setStroke(new BasicStroke(strokeSize));
+
+        //colors in RGB
+        String red = Integer.toString(tcc.getColor().getRed());
+        String green = Integer.toString(tcc.getColor().getGreen());
+        String blue = Integer.toString(tcc.getColor().getBlue());
+        g.drawLine(x1, y1, x2, y2);
+        //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
+
+        // IMPORTANT!  every time we draw on the internal drawing buffer, we
+        // have to notify Swing to repaint this component on the screen.
+        this.repaint();
+        String drawCommand = whiteboard + " draw " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
+    }
+    
+    /*
+     * Draw a white line between two points (x1, y1) and (x2, y2), specified in
+     * pixels relative to the upper-left corner of the drawing buffer.
+     */
+    public void commandErase(int x1, int y1, int x2, int y2) {
+        if (drawingBuffer == null) {
+            makeDrawingBuffer();
+        }
+        Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
+        g.setColor(Color.WHITE);
+//        setStrokeState(newStrokeSize);
+
+        g.setStroke(new BasicStroke(strokeSize));
+        g.drawLine(x1, y1, x2, y2);
+        //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
+        // IMPORTANT!  every time we draw on the internal drawing buffer, we
+        // have to notify Swing to repaint this component on the screen.
+        this.repaint();
+        String eraseCommand = whiteboard + " " + "erase" +  " " + x1 + " " + y1 + " " + x2 + " " + y2;
+    }
+    
+    /*
      * Draw a white line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
@@ -362,6 +435,8 @@ public class WhiteboardClient extends JPanel {
         }
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         g.setColor(Color.WHITE);
+//        setStrokeState(newStrokeSize);
+
         g.setStroke(new BasicStroke(strokeSize));
         g.drawLine(x1, y1, x2, y2);
         //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
@@ -401,6 +476,7 @@ public class WhiteboardClient extends JPanel {
                 drawLineSegment(lastX, lastY, lastX, lastY);
             }
         }
+        
 
         /*
          * When mouse moves while a button is pressed down,
