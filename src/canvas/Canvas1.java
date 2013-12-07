@@ -9,35 +9,41 @@ import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 
 import canvas.whiteboardclient.WhiteboardClient;
+import canvas.whiteboardclient.WhiteboardClient1;
 
 
 public class Canvas1 extends JPanel{
-    private WhiteboardClient client;
+    //private WhiteboardClient1 client;
     // image where the user's drawing is stored
     private Image drawingBuffer;
     public boolean drawMode;
     private int strokeSize;
     private final JColorChooser tcc = new JColorChooser(Color.BLACK);
     private String canvas;
+    public final BlockingQueue<String> outputCommandsQueue;
 
     /**
      * Make a canvas.
      * @param width width in pixels
      * @param height height in pixels
      */
-    public Canvas1(int width, int height, WhiteboardClient client) {
-        this.client = new WhiteboardClient(width,height);
+    public Canvas1(int width, int height, BlockingQueue<String> queue) {
+        //this.client = new WhiteboardClient1();
         this.setPreferredSize(new Dimension(width, height));
         addDrawingController();
         // note: we can't call makeDrawingBuffer here, because it only
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
         drawMode = true;
+        this.outputCommandsQueue = queue;
     }
     
     public JColorChooser getTcc() {
@@ -119,7 +125,8 @@ public class Canvas1 extends JPanel{
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
         String drawCommand = canvas + " draw " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
-        client.outputCommandsQueue.offer(drawCommand);
+        
+        outputCommandsQueue.offer(drawCommand);
     }
 
     /*
@@ -139,7 +146,54 @@ public class Canvas1 extends JPanel{
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
         String eraseCommand = canvas + " " + "erase" +  " " + x1 + " " + y1 + " " + x2 + " " + y2;
-        client.outputCommandsQueue.offer(eraseCommand);
+        
+        outputCommandsQueue.offer(eraseCommand);
+    }
+    
+    /*
+     * Draws a line segment between two points (x1,y1) and (x2,y2) 
+     * with a specified stroke size and color (in RGB), specified 
+     * in pixels relative to the upper left corner of the drawing buffer
+     */
+    public void commandDraw(int x1, int y1, int x2, int y2, int currentStrokeSize, String red, String green, String blue) {
+        if (drawingBuffer == null) {
+            makeDrawingBuffer();
+            System.out.println("make a drawing buffer");
+        }
+        Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
+        g.setColor(tcc.getColor());
+
+        g.setStroke(new BasicStroke(currentStrokeSize));
+        int redValue = Integer.parseInt(red);
+        int greenValue = Integer.parseInt(green);
+        int blueValue = Integer.parseInt(blue);
+        tcc.setColor(redValue, greenValue, blueValue);
+        //colors in RGB
+
+        g.drawLine(x1, y1, x2, y2);
+        //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
+
+        // IMPORTANT!  every time we draw on the internal drawing buffer, we
+        // have to notify Swing to repaint this component on the screen.
+        this.repaint();
+    }
+    
+    /*
+     * Draw a white line between two points (x1, y1) and (x2, y2), specified in
+     * pixels relative to the upper-left corner of the drawing buffer.
+     */
+    public void commandErase(int x1, int y1, int x2, int y2, int newStroke) {
+        if (drawingBuffer == null) {
+            makeDrawingBuffer();
+        }
+        Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
+        g.setColor(Color.WHITE);
+        g.setStroke(new BasicStroke(newStroke));
+        g.drawLine(x1, y1, x2, y2);
+        //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
+        // IMPORTANT!  every time we draw on the internal drawing buffer, we
+        // have to notify Swing to repaint this component on the screen.
+        this.repaint();
     }
 
     /*
