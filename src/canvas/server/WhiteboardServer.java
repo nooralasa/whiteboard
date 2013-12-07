@@ -232,6 +232,7 @@ public class WhiteboardServer {
                 + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
         if (!input.matches(regex)) { // Invalid Input
             System.err.println("Invalid Input");
+            System.err.println("Not in REGEX :(");
             commandQueues.get(threadNum).add("Invalid Input");
             return ;
         }
@@ -240,12 +241,11 @@ public class WhiteboardServer {
         if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
             // If the client doesn't exist
             if (!clientToWhiteboardMap.containsKey(tokens[2])){
+                System.out.println("Got here");
                 clientToWhiteboardMap.put(tokens[2],"");
                 clientToThreadNumMap.put(tokens[2], threadNum);
-                // If there are no whiteboards
-                if (whiteboardToCommandsMap.keySet().size() == 0){
-                    commandQueues.get(threadNum).add("No existing whiteboards.");
-                }
+                getExistingWhiteboards(threadNum);
+                commandQueues.get(threadNum).add("Select a whiteboard");
             } else{ // case in which the username is already in the map
                 commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
             }
