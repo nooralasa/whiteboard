@@ -42,7 +42,10 @@ public class SidePanel extends JPanel {
 
         
         usersInWhiteboardListModel = new DefaultListModel<String>();
-        usersInWhiteboardListModel.addElement("Jane Doe");
+        for(String i: canvas.getUsersInWhiteboard()){
+            usersInWhiteboardListModel.addElement(i);
+        }
+
         usersInWhiteboardList = new JList<String>(usersInWhiteboardListModel);
 
         usersInWhiteboardList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
@@ -59,6 +62,9 @@ public class SidePanel extends JPanel {
         whiteboardsInServerListModel = new DefaultListModel<String>();
         whiteboardsInServerListModel.addElement("add elements whiteboards");
         whiteboardsInServerList = new JList<String>(whiteboardsInServerListModel);
+        for(String i: canvas.getExistingWhiteboards()){
+            whiteboardsInServerListModel.addElement(i);
+        }
 
         whiteboardsInServerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         whiteboardsInServerList.setLayoutOrientation(JList.VERTICAL);
