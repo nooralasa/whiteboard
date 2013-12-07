@@ -44,6 +44,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import canvas.ButtonPanel;
+import canvas.SidePanel;
 
 /**
  * Canvas represents a drawing surface that allows the user to draw
@@ -60,6 +61,7 @@ public class WhiteboardClient extends JPanel {
     private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
     private final BlockingQueue<String> outputCommandsQueue;
     private final List<String> existingWhiteboards;
+    private final List<String> usersInWhiteboard;
     /**
      * Make a canvas.
      * @param width width in pixels
@@ -75,6 +77,7 @@ public class WhiteboardClient extends JPanel {
         inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
         existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
+        usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
         connectToServer();
         getUsername("");
     }
@@ -522,7 +525,9 @@ public class WhiteboardClient extends JPanel {
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
                 ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
+                SidePanel sidePanel = new SidePanel(100, y, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
+                window.add(sidePanel, BorderLayout.EAST);
                 window.pack();
                 window.setVisible(true);
                 //TODO: need a panel that displays the other users working on the same whiteboard.

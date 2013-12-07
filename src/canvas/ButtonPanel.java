@@ -206,7 +206,10 @@ public class ButtonPanel extends JPanel {
             @Override
             public void stateChanged(ChangeEvent e){
                 JSlider source =(JSlider) e.getSource();
-                canvas.setStrokeState(source.getValue());
+                //only when not adjusting slider
+                if (!source.getValueIsAdjusting()) {
+                    canvas.setStrokeState(source.getValue());
+                }
             }
         });
         strokeSize.setMajorTickSpacing(10);
@@ -299,8 +302,13 @@ public class ButtonPanel extends JPanel {
         strokeSize.addChangeListener(new ChangeListener(){
             @Override
             public void stateChanged(ChangeEvent e){
+
                 JSlider source = (JSlider) e.getSource();
-                canvas3.setStrokeState(source.getValue());
+
+                //only when not adjusting slider
+                if (!source.getValueIsAdjusting()) {
+                    canvas3.setStrokeState(source.getValue());
+                }
             }
         });
         strokeSize.setMajorTickSpacing(10);

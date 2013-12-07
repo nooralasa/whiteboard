@@ -39,7 +39,7 @@ public class WhiteboardServer {
         whiteboardToCommandsMap = new ConcurrentHashMap<String, ArrayList<String>>(); // maps each whiteboard to its commands
         commandQueues = Collections.synchronizedList(new ArrayList<BlockingQueue<String>>());
         clientToThreadNumMap = new ConcurrentHashMap<String, Integer>();
-        // needs to initialize with three whiteboards
+        createBoards();
     }
 
     /**
@@ -61,6 +61,16 @@ public class WhiteboardServer {
             final Integer threadNum = threadID.get();
             createThreads(socket, threadNum);
         }
+    }
+    
+    /**
+     * Creates 3 Boards for the Server to start with
+     */
+    private void createBoards(){
+        ArrayList<String> emptyCommandList = new ArrayList<String>();
+        whiteboardToCommandsMap.put("Board1", emptyCommandList);
+        whiteboardToCommandsMap.put("Board2", emptyCommandList);
+        whiteboardToCommandsMap.put("Board3", emptyCommandList);
     }
 
     /**
@@ -190,9 +200,11 @@ public class WhiteboardServer {
         String[] tokens = input.split(" ");
         // Adding username to the list of usernames
         if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
+            // If the client doesn't exist
             if (!clientToWhiteboardMap.containsKey(tokens[2])){
                 clientToWhiteboardMap.put(tokens[2],"");
                 clientToThreadNumMap.put(tokens[2], threadNum);
+                // If there are no whiteboards
                 if (whiteboardToCommandsMap.keySet().size() == 0){
                     commandQueues.get(threadNum).add("No existing whiteboards.");
                 } else{
