@@ -265,7 +265,7 @@ public class ButtonPanel extends JPanel {
         helpButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    canvas.helpBox();
+                    canvas3.helpBox();
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -301,7 +301,7 @@ public class ButtonPanel extends JPanel {
                 JSlider source =(JSlider) e.getSource();
                 //only when not adjusting slider
                 if (!source.getValueIsAdjusting()) {
-                    canvas.setStrokeState(source.getValue());
+                    canvas3.setStrokeState(source.getValue());
                 }
             }
         });
