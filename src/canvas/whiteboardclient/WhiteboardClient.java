@@ -7,29 +7,18 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -37,20 +26,15 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
+import javax.swing.DefaultListModel;
 import javax.swing.JColorChooser;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
 
 import canvas.ButtonPanel;
 import canvas.SidePanel;
-//import canvas.SidePanel;
 
 /**
  * Canvas represents a drawing surface that allows the user to draw
@@ -64,10 +48,11 @@ public class WhiteboardClient extends JPanel {
     private JFrame window;
     public boolean drawMode;
     public int strokeSize;
-    private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
+//    private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
     private final BlockingQueue<String> outputCommandsQueue;
     private final List<String> existingWhiteboards;
     private final List<String> usersInWhiteboard;
+    private SidePanel sidePanel;
     
     /**
      * Make a canvas.
@@ -81,10 +66,11 @@ public class WhiteboardClient extends JPanel {
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
         drawMode = true;
-        inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
+//        inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
-        existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
-        usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
+        existingWhiteboards = new ArrayList<String>();
+        usersInWhiteboard = new ArrayList<String>();
+        sidePanel = new SidePanel(250, height);
         connectToServer(ipAddress, portNumber);
         getUsername("");
     }
@@ -194,14 +180,6 @@ public class WhiteboardClient extends JPanel {
             socket.close();
         }
     }
-        
-    public List<String> getExistingWhiteboards(){
-        return existingWhiteboards;
-    }
-
-    public List<String> getUsersInWhiteboard(){
-        return existingWhiteboards;
-    }
     
     /**
      * Handler for client input, performing requested operations and returning an output message.
@@ -218,14 +196,13 @@ public class WhiteboardClient extends JPanel {
             System.err.println("Invalid Input");
             System.err.println(input);
             System.err.println("Not in Regex");
-
             return ;
         }
         String[] tokens = input.split(" ");
         // Choosing a whiteboard to work on
         if (tokens.length > 1) {
-            if (tokens[1].equals("Username")){
-                getUsername("Username already taken.\n");
+            if (tokens[0].equals("Username")){
+                getUsername("Username already taken.\n"); //TODO: need to add something that will update the title of the GUI
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
                 chooseWhiteboard();
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
@@ -239,12 +216,13 @@ public class WhiteboardClient extends JPanel {
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
                 System.out.println("Done receiving whiteboards!");
                 System.out.println(existingWhiteboards.toString());
-                // here should be the command to update the panel displaying the whiteboards 
+                sidePanel.updateWhiteboardsList(existingWhiteboards);
+                System.err.println("Whiteboards Model should be updated");
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 System.out.println("Done sending clients!");
                 System.out.println(usersInWhiteboard.toString());
-                // here should be the command to update the panel displaying the clients on the same whiteboard 
-                usersInWhiteboard.clear();
+                sidePanel.updateClientsList(usersInWhiteboard);
+                System.err.println("Clients Model should be updated");
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboard = tokens[1];
                 outputCommandsQueue.offer(clientName + " selectBoard " + tokens[1]);
@@ -397,7 +375,6 @@ public class WhiteboardClient extends JPanel {
         String green = Integer.toString(tcc.getColor().getGreen());
         String blue = Integer.toString(tcc.getColor().getBlue());
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
@@ -427,7 +404,6 @@ public class WhiteboardClient extends JPanel {
         //colors in RGB
 
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
@@ -446,7 +422,6 @@ public class WhiteboardClient extends JPanel {
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(newStroke));
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
@@ -465,7 +440,6 @@ public class WhiteboardClient extends JPanel {
 
         g.setStroke(new BasicStroke(strokeSize));
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
@@ -541,12 +515,10 @@ public class WhiteboardClient extends JPanel {
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
                 ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
-                SidePanel sidePanel = new SidePanel(250, y, canvas);
                 window.add(buttonPanel, BorderLayout.SOUTH);
                 window.add(sidePanel, BorderLayout.EAST);
                 window.pack();
                 window.setVisible(true);
-                //TODO: need a panel that displays the other users working on the same whiteboard.
             }
         });
     }

@@ -28,6 +28,7 @@ public class WhiteboardServer {
     private final Map<String, Integer> clientToThreadNumMap;
     private final List<BlockingQueue<String>> commandQueues;
 
+
     /**
      * Creates a Whiteboard Server.
      * @param port
@@ -74,13 +75,17 @@ public class WhiteboardServer {
 
     }
 
-    private void getExistingWhiteboards(final int threadNum){
+    private void getExistingWhiteboards(){
         for (String whiteboard : whiteboardToCommandsMap.keySet()){
             String whiteboards = "Existing Whiteboards " + whiteboard;
-            commandQueues.get(threadNum).add(whiteboards);
+            for (BlockingQueue<String> x : commandQueues){
+                x.add(whiteboards);
+            }
         }
         String message = "Done sending whiteboard names";
-        commandQueues.get(threadNum).add(message);
+        for (BlockingQueue<String> x : commandQueues){
+            x.add(message);
+        }    
     }
 
     /**
@@ -88,7 +93,7 @@ public class WhiteboardServer {
      * @param threadNum
      * @param whiteboardName
      */
-    private void getSameUsersWhiteboard(final int threadNum, String whiteboardName){
+    private void getSameUsersWhiteboard(String whiteboardName){
         ArrayList<String> sameClients = new ArrayList<String>(); // clients working on the same whiteboard
         ArrayList<String> sameClientsCommands = new ArrayList<String>();
         // Gets all the clients working on the same Whiteboard and stores them in a list
@@ -243,7 +248,7 @@ public class WhiteboardServer {
                 System.out.println("Got here");
                 clientToWhiteboardMap.put(tokens[2],"");
                 clientToThreadNumMap.put(tokens[2], threadNum);
-                getExistingWhiteboards(threadNum);
+                getExistingWhiteboards();
                 commandQueues.get(threadNum).add("Select a whiteboard");
             } else{ // case in which the username is already in the map
                 commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
@@ -256,7 +261,7 @@ public class WhiteboardServer {
                 whiteboardToCommandsMap.put(tokens[1], commandList);
                 commandQueues.get(threadNum).add("Board " + tokens[1] + " added");
             }
-            getExistingWhiteboards(threadNum);
+            getExistingWhiteboards();
         } else if (tokens[0].equals("help")) {
             // 'help' request
             commandQueues.get(threadNum).add("Help"); // actually probably don't need to send a help message as the help message should be stored locally on the client
@@ -284,7 +289,7 @@ public class WhiteboardServer {
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
-                    getSameUsersWhiteboard(threadNum, tokens[2]);
+                    getSameUsersWhiteboard(tokens[2]);
                     commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]); 
                     System.out.println(tokens[0] + " on board " + tokens[2]);
                     //TODO: need to add something so that sends the list of usernames to all clients and on the client side need to add something to handle this and store usernames in a list to display
