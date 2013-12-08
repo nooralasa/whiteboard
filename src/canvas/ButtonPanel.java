@@ -43,7 +43,7 @@ public class ButtonPanel extends JPanel {
 
         drawButton = new JButton();
         drawButton.setName("drawButton");
-        drawButton.setText("Draw");
+        drawButton.setText("Erase");
         drawButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -69,6 +69,7 @@ public class ButtonPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 try {
                     whiteboard.helpBox();
+                    //TODO: Fix help message
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -89,7 +90,7 @@ public class ButtonPanel extends JPanel {
        
         strokeState = new JLabel();
         strokeState.setName("strokeState");
-        strokeState.setText("Stroke State: Erase");
+        strokeState.setText("Stroke State: Draw");
         
         strokeSizeLabel = new JLabel();
         strokeSizeLabel.setName("strokeSizeLabel");
