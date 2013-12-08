@@ -48,7 +48,6 @@ public class WhiteboardClient extends JPanel {
     private JFrame window;
     public boolean drawMode;
     public int strokeSize;
-//    private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
     private final BlockingQueue<String> outputCommandsQueue;
     private final List<String> existingWhiteboards;
     private final List<String> usersInWhiteboard;
@@ -66,7 +65,6 @@ public class WhiteboardClient extends JPanel {
         // works *after* this canvas has been added to a window.  Have to
         // wait until paintComponent() is first called.
         drawMode = true;
-//        inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
         existingWhiteboards = new ArrayList<String>();
         usersInWhiteboard = new ArrayList<String>();
@@ -91,11 +89,6 @@ public class WhiteboardClient extends JPanel {
      * Lets the user choose their whiteboard or create a new whiteboard.
      */
     private void chooseWhiteboard(){
-        // all the names of the existing whiteboards are in the list of strings existingWhiteboards
-        // should use a jcombo box or something to display the choices
-        // could maybe `have a textfield similar to the getusername one to choose own.
-        // MAKE SURE to set the selected whiteboard as this.whiteboard and then wipe the board
-        // for now needs to be fixed by erwin
         JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
         Object[] possibilities = null;
         String whiteboardNames = "Existing Whiteboards ";
@@ -214,23 +207,15 @@ public class WhiteboardClient extends JPanel {
                     usersInWhiteboard.add(tokens[1]);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                System.out.println("Done receiving whiteboards!");
-                System.out.println(existingWhiteboards.toString());
                 sidePanel.updateWhiteboardsList(existingWhiteboards);
-                System.err.println("Whiteboards Model should be updated");
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
-                System.out.println("Done sending clients!");
-                System.out.println(usersInWhiteboard.toString());
                 sidePanel.updateClientsList(usersInWhiteboard);
-                System.err.println("Clients Model should be updated");
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboard = tokens[1];
                 outputCommandsQueue.offer(clientName + " selectBoard " + tokens[1]);
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
             } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
                 helpBox();
-            } else if (tokens[0].equals("Thank") && tokens[1].equals("you!")) {
-                System.err.println("Connection terminated"); //TODO: terminate connection
             } else if (tokens[0].equals(whiteboard) && (tokens[1].equals("draw"))){
                 int x1 = Integer.parseInt(tokens[2]);
                 int y1 = Integer.parseInt(tokens[3]);
