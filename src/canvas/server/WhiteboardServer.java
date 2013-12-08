@@ -251,7 +251,7 @@ public class WhiteboardServer {
             }
         } else if (tokens[0].equals("addBoard")){
             if (whiteboardToCommandsMap.containsKey(tokens[1])){
-                commandQueues.get(threadNum).add("Whiteboard already exists.");
+                commandQueues.get(threadNum).add("Whiteboard already exists."); // I don't think this is possible anymore
             } else{
                 ArrayList<String> commandList = new ArrayList<String>();
                 whiteboardToCommandsMap.put(tokens[1], commandList);
@@ -279,16 +279,15 @@ public class WhiteboardServer {
                 }
             } else if (tokens[1].equals("selectBoard")) { // Selecting board
                 if (!clientToWhiteboardMap.containsKey(tokens[0])){
-                    //                    commandQueues.get(threadNum).add("Whiteboard doesn't exist.");
                     commandQueues.get(threadNum).add("Username does not exist.");
                 } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
+                    System.out.println("GOT HERE!!!");
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
                     getSameUsersWhiteboard(threadNum, tokens[2]);
-                    commandQueues.get(threadNum).add("You are currently on board "+ tokens[2]); 
+                    commandQueues.get(threadNum).add(tokens[0] + " on board " + tokens[2]); 
                     System.out.println(tokens[0] + " on board " + tokens[2]);
-                    //TODO: need to add something so that sends the list of usernames to all clients and on the client side need to add something to handle this and store usernames in a list to display
                     for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
                         commandQueues.get(threadNum).add(command);
                     }

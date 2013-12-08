@@ -28,7 +28,7 @@ public class Canvas extends JPanel{
     private int strokeSize;
     private final JColorChooser tcc = new JColorChooser(Color.BLACK);
     private final JColorChooser serverTcc = new JColorChooser(Color.BLACK);
-    public String canvas;
+    public String whiteboardName;
     public final BlockingQueue<String> outputCommandsQueue;
 
     /**
@@ -125,7 +125,7 @@ public class Canvas extends JPanel{
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
-        String drawCommand = canvas + " draw " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
+        String drawCommand = whiteboardName + " draw " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
         
         outputCommandsQueue.offer(drawCommand);
     }
@@ -146,7 +146,7 @@ public class Canvas extends JPanel{
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
-        String eraseCommand = canvas + " " + "erase" +  " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize;
+        String eraseCommand = whiteboardName + " " + "erase" +  " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize;
         
         outputCommandsQueue.offer(eraseCommand);
     }

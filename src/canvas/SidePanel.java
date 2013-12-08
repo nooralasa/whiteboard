@@ -3,7 +3,6 @@ package canvas;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -23,12 +22,18 @@ public class SidePanel extends JPanel {
     private JScrollPane whiteboardsInServer;
     private JLabel whiteboardsInServerLabel;
     private DefaultListModel<String> usersInWhiteboardListModel;
-    public DefaultListModel<String> whiteboardsInServerListModel;
+    private DefaultListModel<String> whiteboardsInServerListModel;
     private JList<String> usersInWhiteboardList;
     private JList<String> whiteboardsInServerList;
     private JButton selectWhiteboard;
     private String selectedWhiteboard;
 
+    /**
+     * 
+     * @param width
+     * @param height
+     * @param whiteboard
+     */
     public SidePanel(int width, int height, final WhiteboardGUI whiteboard){
         this.setPreferredSize(new Dimension(width, height));
         GroupLayout layout = new GroupLayout(this);
@@ -47,6 +52,8 @@ public class SidePanel extends JPanel {
         usersInWhiteboardList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         usersInWhiteboardList.setLayoutOrientation(JList.VERTICAL);
         usersInWhiteboardList.setVisibleRowCount(-1);
+
+        // Creates the ScrollPane for the Same Users in the Whiteboard
         usersInWhiteboard = new JScrollPane(usersInWhiteboardList);
         usersInWhiteboard.setPreferredSize(new Dimension(250, 80)); //TODO: should be set from height and width
 
@@ -60,19 +67,23 @@ public class SidePanel extends JPanel {
         whiteboardsInServerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         whiteboardsInServerList.setLayoutOrientation(JList.VERTICAL);
         whiteboardsInServerList.setVisibleRowCount(-1);
-        whiteboardsInServerList.addListSelectionListener(new ListSelectionListener() { 
+
+        // Action Listener for when a whiteboard is selected in the JList
+        whiteboardsInServerList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting() == false) {
                     selectedWhiteboard = (String) whiteboardsInServerList.getSelectedValue();
                 }
             }
         });
+        // Creates the ScrollPane for the Whiteboards on the Server
         whiteboardsInServer = new JScrollPane(whiteboardsInServerList);
-        whiteboardsInServer.setPreferredSize(new Dimension(250, 80));
-   
+        whiteboardsInServer.setPreferredSize(new Dimension(250, 80));//TODO: should be set from height and width
+
+        // Creates the Button to Switch to a New Whiteboard
         selectWhiteboard = new JButton();
         selectWhiteboard.setName("selectWhiteboard");
-        selectWhiteboard.setText("Select Whiteboard");
+        selectWhiteboard.setText("Switch Whiteboards");
         selectWhiteboard.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -82,6 +93,8 @@ public class SidePanel extends JPanel {
                 }
             }
         });
+        
+        // Layout
         layout.setHorizontalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(usersInWhiteboardLabel)
@@ -109,7 +122,7 @@ public class SidePanel extends JPanel {
             whiteboardsInServerListModel.addElement(whiteboard);
         }
     }
-    
+
     /**
      * Updates the JList with the clients.
      * @param clients clients to display in the JList

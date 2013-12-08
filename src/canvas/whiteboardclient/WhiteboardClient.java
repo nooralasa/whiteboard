@@ -25,7 +25,7 @@ public class WhiteboardClient {
     private String whiteboardName;
     public final BlockingQueue<String> outputCommandsQueue; //For communication with the server
     private final List<String> usersInWhiteboard;
-    private WhiteboardGUI whiteboards; //The GUI representation of our whiteboards
+    private WhiteboardGUI whiteboards; //The GUI representation of a Whiteboard
 
     /**
      * Makes a WhiteboardClient
@@ -43,8 +43,11 @@ public class WhiteboardClient {
         outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
     }
 
+    /**
+     * 
+     * @param whiteboard
+     */
     public void createWhiteboard(String whiteboard) {
-        System.out.println("We are here");
         whiteboards.createWindow(whiteboard);
         whiteboards.makeWhiteboard();
     }
@@ -125,7 +128,7 @@ public class WhiteboardClient {
     private void handleResponse(String input) {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
                 + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Thank you!)|"
-                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|(You are currently on board [^=]*)|"
+                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|"
                 + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
         if (!input.matches(regex)) {
             // invalid input
@@ -140,11 +143,13 @@ public class WhiteboardClient {
             if (tokens[0].equals("Username")){
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
-                String desiredWhiteboardName = whiteboards.chooseWhiteboard();
+                whiteboards.chooseWhiteboard();
+                // should not set what thw whiteboard is until you actually get it assigned
+            } else if (tokens[1].equals("on") && tokens[2].equals("board")) {
                 //updates the client's whiteboard
-                whiteboardName = desiredWhiteboardName;
-                //updates the canvas name so we know which canvas to edit
-                whiteboards.canvas.canvas = desiredWhiteboardName;             
+                whiteboardName = tokens[3];
+                // Updates the Canvas' Whiteboard Name 
+                whiteboards.canvas.whiteboardName = tokens[3];              
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
@@ -233,8 +238,7 @@ public class WhiteboardClient {
     public static void main(String[] args) {
         // Command-line argument parsing is provided. Do not change this method.
         int port = 4444; // default port
-        String ipAddress = "127.0.0.1";
-
+        String ipAddress = "127.0.0.1"; // Localhost IP Address by default
         Queue<String> arguments = new LinkedList<String>(Arrays.asList(args));
         try {
             while ( !arguments.isEmpty()) {
@@ -265,8 +269,5 @@ public class WhiteboardClient {
             return;
         }
         runWhiteboardClient(ipAddress, port);
-        System.out.println("It's here");
     }
-
-
 }
