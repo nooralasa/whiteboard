@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 
 /**
- * Whiteboard Server
+ * Whiteboard Server represents
  *
  */
 public class WhiteboardServer {
