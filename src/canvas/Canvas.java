@@ -27,6 +27,7 @@ public class Canvas extends JPanel{
     public boolean drawMode;
     private int strokeSize;
     private final JColorChooser tcc = new JColorChooser(Color.BLACK);
+    private final JColorChooser serverTcc = new JColorChooser(Color.BLACK);
     public String canvas;
     public final BlockingQueue<String> outputCommandsQueue;
 
@@ -35,7 +36,7 @@ public class Canvas extends JPanel{
      * @param width width in pixels
      * @param height height in pixels
      */
-    public Canvas(int width, int height, BlockingQueue<String> queue) {
+    public Canvas (int width, int height, BlockingQueue<String> queue) {
         //this.client = new WhiteboardClient1();
         this.setPreferredSize(new Dimension(width, height));
         addDrawingController();
@@ -161,13 +162,13 @@ public class Canvas extends JPanel{
             System.out.println("make a drawing buffer");
         }
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
-        g.setColor(tcc.getColor());
 
         g.setStroke(new BasicStroke(currentStrokeSize));
         int redValue = Integer.parseInt(red);
         int greenValue = Integer.parseInt(green);
         int blueValue = Integer.parseInt(blue);
-        tcc.setColor(redValue, greenValue, blueValue);
+        serverTcc.setColor(redValue, greenValue, blueValue);
+        g.setColor(serverTcc.getColor());
         //colors in RGB
 
         g.drawLine(x1, y1, x2, y2);
