@@ -1,8 +1,6 @@
 package canvas;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -11,13 +9,11 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import canvas.whiteboardclient.WhiteboardClientBACKUP;
 import canvas.whiteboardclient.WhiteboardClient;
 
 public class WhiteboardGUI extends JFrame {
@@ -29,8 +25,6 @@ public class WhiteboardGUI extends JFrame {
     public String clientName;
     private final List<String> existingWhiteboards;
     public final BlockingQueue<String> outputCommandsQueue;
-    
-
 
     /**
      * Make a whiteboard.
@@ -47,7 +41,6 @@ public class WhiteboardGUI extends JFrame {
     }
     
     public void createWindow(String clientName) {
-
         setTitle(clientName);
         setState(java.awt.Frame.NORMAL);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -58,7 +51,7 @@ public class WhiteboardGUI extends JFrame {
         pack();
     }
     
-    public  List<String> getExistingWhiteboards() {
+    public List<String> getExistingWhiteboards() {
         return existingWhiteboards;
     }
     
@@ -72,10 +65,10 @@ public class WhiteboardGUI extends JFrame {
     public Canvas getCanvas() {
         return canvas;
     }
-    
-    public static void addClient(WhiteboardClient client) {
-        //TODO add client
-    }
+//    
+//    public static void addClient(WhiteboardClient client) {
+//        //TODO add client
+//    }
     
     /**
      * Gets the username from the user.
@@ -119,10 +112,9 @@ public class WhiteboardGUI extends JFrame {
      * choose a new whiteboard 
      */
     public void chooseNewWhiteboard(String desiredWhiteboardName){
+        canvas.fillWithWhite();
         if (existingWhiteboards.contains(desiredWhiteboardName)){
             outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
-        } else{
-            outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
         }
     }
     

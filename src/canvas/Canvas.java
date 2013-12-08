@@ -76,7 +76,7 @@ public class Canvas extends JPanel{
     /*
      * Make the drawing buffer entirely white.
      */
-    private void fillWithWhite() {
+    protected void fillWithWhite() {
         final Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
         g.setColor(Color.WHITE);
