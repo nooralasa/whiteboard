@@ -73,8 +73,29 @@ public class WhiteboardServer {
         whiteboardToCommandsMap.put("Board3", emptyCommandAndClientList);
 
     }
+    
+    
 
-    private void getExistingWhiteboards(final int threadNum){
+    /**
+     * Sends Existing Whiteboards to All Clients
+     */
+    private void getExistingWhiteboardsAll(){
+        for (String whiteboard : whiteboardToCommandsMap.keySet()){
+            String whiteboards = "Existing Whiteboards " + whiteboard;
+            for (BlockingQueue<String> commandQueue : commandQueues){
+                commandQueue.offer(whiteboards);
+            }
+        }
+        String message = "Done sending whiteboard names";
+        for (BlockingQueue<String> commandQueue : commandQueues){
+            commandQueue.offer(message);
+        }
+    }
+
+    /**
+     * Sends Existing Whiteboards to One Clients
+     */
+    private void getExistingWhiteboardsOne(final int threadNum){
         for (String whiteboard : whiteboardToCommandsMap.keySet()){
             String whiteboards = "Existing Whiteboards " + whiteboard;
             commandQueues.get(threadNum).add(whiteboards);
@@ -82,7 +103,7 @@ public class WhiteboardServer {
         String message = "Done sending whiteboard names";
         commandQueues.get(threadNum).add(message);
     }
-
+    
     /**
      * Sends out to all clients that are working on the same whiteboard the names of the other clients working on the whiteboard
      * @param threadNum
@@ -230,7 +251,6 @@ public class WhiteboardServer {
         String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
                 + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
         if (!input.matches(regex)) { // Invalid Input
-            System.err.println("Invalid Input REGEX");
             System.err.println("Not in REGEX :(");
             commandQueues.get(threadNum).add("Invalid Input Received by Server");
             return ;
@@ -240,11 +260,9 @@ public class WhiteboardServer {
         if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
             // If the client doesn't exist
             if (!clientToWhiteboardMap.containsKey(tokens[2])){
-                System.out.println("Got here");
                 clientToWhiteboardMap.put(tokens[2],"");
                 clientToThreadNumMap.put(tokens[2], threadNum);
-                getExistingWhiteboards(threadNum);
-                System.out.println("we are here");
+                getExistingWhiteboardsOne(threadNum); // send existing whiteboards only to the user that just joined
                 commandQueues.get(threadNum).add("Select a whiteboard");
             } else{ // case in which the username is already in the map
                 commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
@@ -257,7 +275,7 @@ public class WhiteboardServer {
                 whiteboardToCommandsMap.put(tokens[1], commandList);
                 commandQueues.get(threadNum).add("Board " + tokens[1] + " added");
             }
-            getExistingWhiteboards(threadNum);
+            getExistingWhiteboardsAll(); // Send existing whiteboards to all users
         } else if (tokens[0].equals("help")) {
             // 'help' request
             commandQueues.get(threadNum).add("Help"); // actually probably don't need to send a help message as the help message should be stored locally on the client
@@ -283,7 +301,6 @@ public class WhiteboardServer {
                 } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
-                    System.out.println("GOT HERE!!!");
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
                     getSameUsersWhiteboard(threadNum, tokens[2]);
                     commandQueues.get(threadNum).add(tokens[0] + " on board " + tokens[2]); 
