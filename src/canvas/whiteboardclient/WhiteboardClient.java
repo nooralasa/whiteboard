@@ -22,6 +22,10 @@ import canvas.WhiteboardGUI;
  * on it freehand, with the mouse.
  */
 public class WhiteboardClient {
+    private boolean inActive = true;
+    private boolean outActive = true;
+    private BufferedReader in;
+    private PrintWriter out;
     private String whiteboardName;
     public final BlockingQueue<String> outputCommandsQueue; //For communication with the server
     private final List<String> usersInWhiteboard;
@@ -67,6 +71,7 @@ public class WhiteboardClient {
                 public void run() {
                     System.out.println("Starting Client Input Thread");
                     try {
+                        System.out.println("I'm in ConnectToServer");
                         handleServerResponse(clientSocket);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -108,15 +113,17 @@ public class WhiteboardClient {
      *             if connection has an error or terminates unexpectedly
      */
     private void handleServerResponse(Socket socket) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        System.out.println("ServerResponse");
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         try {
-            for (String line = in.readLine(); line != null; line = in.readLine()) {
-                handleResponse(line);
-                System.out.println("Server Response: " + line);
+            while(inActive) {
+                System.out.println("I'm in here");
+                for (String line = in.readLine(); line != null; line = in.readLine()) {
+                    handleResponse(line);
+                    System.out.println("Server Response: " + line);
+                }
             }
         } finally {
-            in.close();
-            socket.close();
         }
     }
 
@@ -128,7 +135,7 @@ public class WhiteboardClient {
     private void handleResponse(String input) {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
                 + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Thank you!)|"
-                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|"
+                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Connection terminated)|"
                 + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
         if (!input.matches(regex)) {
             // invalid input
@@ -211,15 +218,20 @@ public class WhiteboardClient {
      * @throws InterruptedException 
      */
     private void handleOutputs(final Socket socket) throws IOException, InterruptedException {
-        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        out = new PrintWriter(socket.getOutputStream(), true);
         try {
-            while (true){ // constantly poll the commands queue //TODO: check with TA what to do about this since when the socket disconnects will still be in the while loop
+            while (outActive){ // constantly poll the commands queue //TODO: check with TA what to do about this since when the socket disconnects will still be in the while loop
                 while (outputCommandsQueue.peek() != null){
                     String output = (String) outputCommandsQueue.take();
                     System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
                     out.println(output);
-                    if (output.equals("Thank you!")) { // this is if thank you is the disconnect message
+                    if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect message
+                        System.out.println("Should be disconnected now");
+                        outputCommandsQueue.clear(); // Clears the outputCommandsQueue
+                        inActive = false;
+                        outActive = false;
                         out.close();
+                        in.close();
                         socket.close();
                         break;
                     }
