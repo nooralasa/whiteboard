@@ -68,7 +68,7 @@ public class WhiteboardClientBACKUP extends JPanel {
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
         existingWhiteboards = new ArrayList<String>();
         usersInWhiteboard = new ArrayList<String>();
-        sidePanel = new SidePanel(250, height);
+        sidePanel = new SidePanel(250, height,this);
         connectToServer(ipAddress, portNumber);
         getUsername("");
     }

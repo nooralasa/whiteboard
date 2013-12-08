@@ -25,6 +25,7 @@ public class WhiteboardGUI extends JFrame {
     public Canvas canvas;
     //private WhiteboardClient1 client;
     private ButtonPanel buttonPanel;
+    private SidePanel sidePanel;
     public String clientName;
     private final List<String> existingWhiteboards;
     public final BlockingQueue<String> outputCommandsQueue;
@@ -41,6 +42,7 @@ public class WhiteboardGUI extends JFrame {
         this.outputCommandsQueue = outputCommandsQueue;
         this.canvas = new Canvas(width,height, outputCommandsQueue);
         this.buttonPanel = new ButtonPanel(width, 50, this);
+        this.sidePanel = new SidePanel(250, height, this);
         this.existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
     }
     
@@ -52,6 +54,7 @@ public class WhiteboardGUI extends JFrame {
         setLayout(new BorderLayout());
         add(canvas, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+        add(sidePanel, BorderLayout.EAST);
         pack();
     }
     
@@ -59,6 +62,13 @@ public class WhiteboardGUI extends JFrame {
         return existingWhiteboards;
     }
     
+    public SidePanel getSidePanel(){
+        return sidePanel;
+    }
+    
+    public ButtonPanel getButtonPanel(){
+        return buttonPanel;
+    }
     public Canvas getCanvas() {
         return canvas;
     }
@@ -104,6 +114,21 @@ public class WhiteboardGUI extends JFrame {
         }
         return desiredWhiteboardName;
     }
+    
+    /**
+     * choose a new whiteboard 
+     */
+    public void chooseNewWhiteboard(String desiredWhiteboardName){
+        if (existingWhiteboards.contains(desiredWhiteboardName)){
+            outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
+        } else{
+            outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
+        }
+    }
+    
+    /**
+     * choose new whiteboard
+     */
     
     /**
      * Pops up help box

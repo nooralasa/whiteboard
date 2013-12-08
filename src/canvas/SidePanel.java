@@ -1,16 +1,21 @@
 package canvas;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class SidePanel extends JPanel {
     private JScrollPane usersInWhiteboard;
@@ -21,8 +26,10 @@ public class SidePanel extends JPanel {
     public DefaultListModel<String> whiteboardsInServerListModel;
     private JList<String> usersInWhiteboardList;
     private JList<String> whiteboardsInServerList;
+    private JButton selectWhiteboard;
+    private String selectedWhiteboard;
 
-    public SidePanel(int width, int height){
+    public SidePanel(int width, int height, final WhiteboardGUI whiteboard){
         this.setPreferredSize(new Dimension(width, height));
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
@@ -53,22 +60,43 @@ public class SidePanel extends JPanel {
         whiteboardsInServerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         whiteboardsInServerList.setLayoutOrientation(JList.VERTICAL);
         whiteboardsInServerList.setVisibleRowCount(-1);
+        whiteboardsInServerList.addListSelectionListener(new ListSelectionListener() { 
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting() == false) {
+                    selectedWhiteboard = (String) whiteboardsInServerList.getSelectedValue();
+                }
+            }
+        });
         whiteboardsInServer = new JScrollPane(whiteboardsInServerList);
-        whiteboardsInServer.setPreferredSize(new Dimension(250, 80)); //TODO: should be set from height and width
-
+        whiteboardsInServer.setPreferredSize(new Dimension(250, 80));
+   
+        selectWhiteboard = new JButton();
+        selectWhiteboard.setName("selectWhiteboard");
+        selectWhiteboard.setText("Select Whiteboard");
+        selectWhiteboard.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    whiteboard.chooseNewWhiteboard(selectedWhiteboard);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
         layout.setHorizontalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(usersInWhiteboardLabel)
                 .addComponent(usersInWhiteboard)
                 .addComponent(whiteboardsInServerLabel)
-                .addComponent(whiteboardsInServer));
+                .addComponent(whiteboardsInServer)
+                .addComponent(selectWhiteboard));
 
         layout.setVerticalGroup(
                 layout.createSequentialGroup()
                 .addComponent(usersInWhiteboardLabel)
                 .addComponent(usersInWhiteboard)
                 .addComponent(whiteboardsInServerLabel)
-                .addComponent(whiteboardsInServer));
+                .addComponent(whiteboardsInServer)
+                .addComponent(selectWhiteboard));
     }
 
     /**

@@ -154,9 +154,9 @@ public class WhiteboardClient {
                     usersInWhiteboard.add(tokens[1]);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                //SidePanel.updateWhiteboardsList(whiteboards.getExistingWhiteboards());
+                whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards());
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
-               //SidePanel.updateClientsList(UsersInWhiteboard);
+                whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
