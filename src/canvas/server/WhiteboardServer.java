@@ -82,26 +82,7 @@ public class WhiteboardServer {
 
     }
 
-    /**
-     * Sends Existing Whiteboards to All Clients
-     */
-    private void getExistingWhiteboardsAll(){
-        for (String whiteboard : whiteboardToCommandsMap.keySet()){
-            String whiteboards = "Existing Whiteboards " + whiteboard;
-            for (BlockingQueue<String> commandQueue : commandQueues){
-                commandQueue.offer(whiteboards);
-            }
-        }
-        String message = "Done sending whiteboard names";
-        for (BlockingQueue<String> commandQueue : commandQueues){
-            commandQueue.offer(message);
-        }
-    }
-
-    /**
-     * Sends Existing Whiteboards to One Clients
-     */
-    private void getExistingWhiteboardsOne(final int threadNum){
+    private void getExistingWhiteboards(final int threadNum){
         for (String whiteboard : whiteboardToCommandsMap.keySet()){
             String whiteboards = "Existing Whiteboards " + whiteboard;
             commandQueues.get(threadNum).add(whiteboards);
@@ -218,7 +199,7 @@ public class WhiteboardServer {
                     String output = (String) commandsQueue.take();
                     //                    System.out.println(output); // so server can see what is being output DELETE later
                     out.println(output);
-                    if (output.equals("Thank you!")) { // this is if thank you is the disconnect message
+                    if (output.equals("Connection Terminated")) { // this is if thank you is the disconnect message
                         numOfClients.getAndDecrement();
                         out.close();
                         socket.close();
@@ -260,8 +241,9 @@ public class WhiteboardServer {
      */
     private void handleRequest(final String input, final Integer threadNum) {
         String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
-                + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
+                + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)|(Disconnect [^=]*)";
         if (!input.matches(regex)) { // Invalid Input
+            System.err.println("Invalid Input REGEX");
             System.err.println("Not in REGEX :(");
             commandQueues.get(threadNum).add("Invalid Input Received by Server");
             return ;
@@ -271,9 +253,11 @@ public class WhiteboardServer {
         if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
             // If the client doesn't exist
             if (!clientToWhiteboardMap.containsKey(tokens[2])){
+                System.out.println("Got here");
                 clientToWhiteboardMap.put(tokens[2],"");
                 clientToThreadNumMap.put(tokens[2], threadNum);
-                getExistingWhiteboardsOne(threadNum); // send existing whiteboards only to the user that just joined
+                getExistingWhiteboards(threadNum);
+                System.out.println("we are here");
                 commandQueues.get(threadNum).add("Select a whiteboard");
             } else{ // case in which the username is already in the map
                 commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
@@ -286,14 +270,17 @@ public class WhiteboardServer {
                 whiteboardToCommandsMap.put(tokens[1], commandList);
                 commandQueues.get(threadNum).add("Board " + tokens[1] + " added");
             }
-            getExistingWhiteboardsAll(); // Send existing whiteboards to all users
+            getExistingWhiteboards(threadNum);
         } else if (tokens[0].equals("help")) {
             // 'help' request
             commandQueues.get(threadNum).add("Help"); // actually probably don't need to send a help message as the help message should be stored locally on the client
-        } else if (tokens[0].equals("bye")) {
+        } else if (tokens[0].equals("Disconnect")) {
             //terminate connection
             System.err.println("Connection terminated");
-            commandQueues.get(threadNum).add("Thank you!"); // probably don't need this since the client should be allowed to terminate connection on own end
+            commandQueues.get(threadNum).add("Connection terminated"); 
+            //Remove client from clientTothreadNumMap and from clientToWhiteboardMap 
+            clientToWhiteboardMap.remove(tokens[1]);
+            clientToThreadNumMap.remove(tokens[1]); 
         } else if (tokens.length > 1) {
             if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
                 // put the input in the whiteboard commandlist
@@ -312,6 +299,7 @@ public class WhiteboardServer {
                 } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
+                    System.out.println("GOT HERE!!!");
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
                     getSameUsersWhiteboard();
                     commandQueues.get(threadNum).add(tokens[0] + " on board " + tokens[2]); 
