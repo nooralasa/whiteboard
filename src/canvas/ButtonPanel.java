@@ -16,7 +16,7 @@ import javax.swing.event.ChangeListener;
 
 import canvas.Canvas;
 import canvas.WhiteboardGUI;
-import canvas.whiteboardclient.WhiteboardClient;
+import canvas.whiteboardclient.WhiteboardClientBACKUP;
 
 public class ButtonPanel extends JPanel {
     private JButton drawButton;

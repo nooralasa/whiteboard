@@ -17,8 +17,8 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import canvas.whiteboardclient.WhiteboardClientBACKUP;
 import canvas.whiteboardclient.WhiteboardClient;
-import canvas.whiteboardclient.WhiteboardClient1;
 
 public class WhiteboardGUI extends JFrame {
     
@@ -63,7 +63,7 @@ public class WhiteboardGUI extends JFrame {
         return canvas;
     }
     
-    public static void addClient(WhiteboardClient1 client) {
+    public static void addClient(WhiteboardClient client) {
         //TODO add client
     }
     

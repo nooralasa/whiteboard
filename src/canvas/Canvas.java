@@ -16,8 +16,8 @@ import java.util.concurrent.BlockingQueue;
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 
+import canvas.whiteboardclient.WhiteboardClientBACKUP;
 import canvas.whiteboardclient.WhiteboardClient;
-import canvas.whiteboardclient.WhiteboardClient1;
 
 
 public class Canvas extends JPanel{
