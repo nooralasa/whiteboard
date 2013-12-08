@@ -123,17 +123,23 @@ public class WhiteboardServer {
         // now go through all the keys in that hashmap (going through all the whiteboards) 
         // and for all the clients in the list, send the client the updated list of users (using the sameClient prototcol)
         // Gets all the clients working on the same Whiteboard and stores them in a list
-
+        whiteboardToClientsMap.clear();
         // Updating whiteboardToClientsMap
         for (String client : clientToWhiteboardMap.keySet()){
             // If the whiteboardToClientsMap doesn't have the Whiteboard
             if (!whiteboardToClientsMap.containsKey(clientToWhiteboardMap.get(client))){
+                System.out.println("Adding " + clientToWhiteboardMap.get(client) + " to whiteboardToClientsMap");
                 ArrayList<String> currentClients = new ArrayList<String>(); // clients working on the same whiteboard
                 currentClients.add(client); // add the client to the list of clients working on the whiteboard
-                whiteboardToClientsMap.put(clientToWhiteboardMap.get(client), currentClients);                
+                whiteboardToClientsMap.put(clientToWhiteboardMap.get(client), currentClients);    
+                System.out.println("Current Clients in " + clientToWhiteboardMap.get(client) + " are " + whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).toString());
             } else{
-                // Add the client to the clients in the list of the Whiteboard it is working on
-                whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).add(client);           
+                // Add the client to the clients in the list of the Whiteboard it is working on (ONLY IF IT ISN'T ALREADY THERE)
+                if (!whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).contains(client)){
+                    System.out.println("Adding Client " + client + " to whiteboardToClientsMap");
+                    whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).add(client); 
+                    System.out.println("Current Clients in " + clientToWhiteboardMap.get(client) + " are " + whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).toString());
+                }
             }
         }
 
@@ -141,21 +147,29 @@ public class WhiteboardServer {
         for (String whiteboard : whiteboardToClientsMap.keySet()){
             ArrayList<String> sameClients = whiteboardToClientsMap.get(whiteboard);
             ArrayList<String> sameClientsCommands = new ArrayList<String>();
-            
+
             // Generates the String commands to denote same clients
             for (String client : sameClients){
                 String clientCommand = "sameClient " + client;
                 sameClientsCommands.add(clientCommand); 
             }
-            
+
             // Send each client that shares the whiteboard all of the sameClients
             for (String client : sameClients){
+                String sending = "Updating Clients";
+                commandQueues.get(clientToThreadNumMap.get(client)).add(sending);
                 for (String clientCommands : sameClientsCommands){
+                    System.out.println("Sending " + clientCommands + " to " + client);
                     commandQueues.get(clientToThreadNumMap.get(client)).add(clientCommands);
                 }
                 String doneSending = "Done sending client names";
                 commandQueues.get(clientToThreadNumMap.get(client)).add(doneSending);
             }
+        }
+        
+        // FOR DEBUGGING PURPOSES DELETE WHEN WORKING
+        for (String whiteboard : whiteboardToClientsMap.keySet()){
+            System.out.println(whiteboard + " clients are " + whiteboardToClientsMap.get(whiteboard).toString());
         }
     }
 
