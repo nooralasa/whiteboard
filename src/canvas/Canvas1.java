@@ -27,7 +27,7 @@ public class Canvas1 extends JPanel{
     public boolean drawMode;
     private int strokeSize;
     private final JColorChooser tcc = new JColorChooser(Color.BLACK);
-    private String canvas;
+    public String canvas;
     public final BlockingQueue<String> outputCommandsQueue;
 
     /**

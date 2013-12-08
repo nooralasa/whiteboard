@@ -76,13 +76,14 @@ public class WhiteboardClient1 {
         System.out.println("Got here");
         connectToServer(ipAddress, portNumber);
         System.out.println("got here");
-        this.width = width;
-        this.height = height;
+        whiteboards = new Whiteboard1(width,height, outputCommandsQueue);
+        outputCommandsQueue.offer(whiteboards.getUsername(""));
+        //createWhiteboard("whiteboard");
     }
 
     public void createWhiteboard(String whiteboard) {
         System.out.println("We are here");
-        whiteboards = new Whiteboard1(width,height, outputCommandsQueue, whiteboard);
+        whiteboards.createWindow(whiteboard);
         whiteboards.makeWhiteboard();
     }
 
@@ -183,11 +184,14 @@ public class WhiteboardClient1 {
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
                 String desiredWhiteboardName = whiteboards.chooseWhiteboard();
+                whiteboards.canvas.canvas = desiredWhiteboardName;
                 if (whiteboards.getExistingWhiteboards().contains(desiredWhiteboardName)){
-                    outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
+                    System.out.println("Is it noor? " + whiteboards.clientName);
+                    outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + desiredWhiteboardName);
                 } else{
+                    System.out.println("Is it noor? " + whiteboards.clientName);
                     outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
-                }
+                }             
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
@@ -196,10 +200,6 @@ public class WhiteboardClient1 {
                 if (!usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.add(tokens[1]);
                 }
-            }else if (tokens[4].equals("board")){
-                System.out.println("Here");
-                whiteboard = tokens[5];
-                createWhiteboard(whiteboard);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
                 System.out.println("Done receiving whiteboards!");
                 System.out.println(whiteboards.getExistingWhiteboards().toString());
@@ -211,7 +211,7 @@ public class WhiteboardClient1 {
                 usersInWhiteboard.clear();
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboard = tokens[1];
-                outputCommandsQueue.offer(clientName + " selectBoard " + tokens[1]);
+                outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
             } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
                 whiteboards.helpBox();
@@ -278,6 +278,7 @@ public class WhiteboardClient1 {
 
     public static void runWhiteboardClient(String ipAddress, int port){
         WhiteboardClient1 client1 = new WhiteboardClient1(800,600, ipAddress, port);
+        client1.createWhiteboard(client1.whiteboards.clientName);
     }
 
     /*
@@ -318,7 +319,7 @@ public class WhiteboardClient1 {
             return;
         }
         runWhiteboardClient(ipAddress, port);
-        System.out.println("Got here");
+        System.out.println("It's here");
     }
 
 

@@ -244,6 +244,7 @@ public class WhiteboardServer {
                 clientToWhiteboardMap.put(tokens[2],"");
                 clientToThreadNumMap.put(tokens[2], threadNum);
                 getExistingWhiteboards(threadNum);
+                System.out.println("we are here");
                 commandQueues.get(threadNum).add("Select a whiteboard");
             } else{ // case in which the username is already in the map
                 commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
