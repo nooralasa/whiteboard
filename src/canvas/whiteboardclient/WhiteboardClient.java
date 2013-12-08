@@ -160,11 +160,13 @@ public class WhiteboardClient {
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards());
+                System.out.println(whiteboards.getExistingWhiteboards());
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
+                whiteboards.updateTitle(whiteboardName);
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
             } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
                 whiteboards.helpBox();

@@ -35,9 +35,12 @@ public class WhiteboardGUI extends JFrame {
         this.sidePanel = new SidePanel(250, height, this);
         this.existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
     }
-
+    
+    public void updateTitle(String currentBoard) {
+        this.setTitle(clientName + " working on " + currentBoard);
+    }
+    
     public void createWindow(String clientName) {
-        setTitle(clientName);
         setState(java.awt.Frame.NORMAL);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO: does this conflict with the other one later in the program
         setLayout(new BorderLayout());
@@ -67,7 +70,7 @@ public class WhiteboardGUI extends JFrame {
      * @param message represents the special message to attach depending on the situation
      */
     public String getUsername(String message){
-        JFrame popup = new JFrame(); // Popup asking for Username
+        final JFrame popup = new JFrame(); // Popup asking for Username
         Object[] possibilities = null;
         String desiredClientName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
         this.clientName = desiredClientName;
@@ -92,6 +95,7 @@ public class WhiteboardGUI extends JFrame {
         whiteboardNames += "\n";   
         String message = "Enter the name of an existing whiteboard or type in a new whiteboard name";
         String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message, "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+        this.updateTitle(desiredWhiteboardName);
         if (existingWhiteboards.contains(desiredWhiteboardName)){
             outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
         } else{
@@ -103,6 +107,7 @@ public class WhiteboardGUI extends JFrame {
      * Let's the user choose a new whiteboard.
      */
     public void chooseNewWhiteboard(String desiredWhiteboardName){
+        this.updateTitle(desiredWhiteboardName);
         canvas.fillWithWhite(); // Erases the Board
         if (existingWhiteboards.contains(desiredWhiteboardName)){
             outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
