@@ -43,7 +43,6 @@ public class WhiteboardClient {
         usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
         connectToServer(ipAddress, portNumber);
         whiteboards = new WhiteboardGUI(width,height, outputCommandsQueue);  
-        outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
     }
 
     /**

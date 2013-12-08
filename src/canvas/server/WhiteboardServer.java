@@ -286,13 +286,6 @@ public class WhiteboardServer {
         } else if (tokens[0].equals("help")) {
             // 'help' request
             commandQueues.get(threadNum).add("Help"); // actually probably don't need to send a help message as the help message should be stored locally on the client
-        } else if (tokens[0].equals("Disconnect")) {
-            //terminate connection
-            System.err.println("Connection terminated");
-            commandQueues.get(threadNum).add("Connection terminated"); 
-            //Remove client from clientTothreadNumMap and from clientToWhiteboardMap 
-            clientToWhiteboardMap.remove(tokens[1]);
-            clientToThreadNumMap.remove(tokens[1]); 
         } else if (tokens.length > 1) {
             if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
                 // put the input in the whiteboard commandlist
