@@ -18,8 +18,7 @@ import java.util.concurrent.BlockingQueue;
 import canvas.WhiteboardGUI;
 
 /**
- * Canvas represents a drawing surface that allows the user to draw
- * on it freehand, with the mouse.
+ * Whiteboard Client represents a client working on the Whiteboard.
  */
 public class WhiteboardClient {
     private boolean inActive = true;
@@ -48,7 +47,7 @@ public class WhiteboardClient {
     }
 
     /**
-     * 
+     * Creates the Whiteboard Window and makes the Whiteboard.
      * @param whiteboard
      */
     public void createWhiteboard(String whiteboard) {
@@ -128,14 +127,14 @@ public class WhiteboardClient {
     }
 
     /**
-     * Handler for client input, performing requested operations and returning an output message.
+     * Handler for input, performing requested operations and returning an output message.
      * 
-     * @param input message from client
+     * @param input message from server
      */
     private void handleResponse(String input) {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
-                + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Thank you!)|"
-                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Connection terminated)|"
+                + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Connection terminated)|"
+                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
                 + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
         if (!input.matches(regex)) {
             // invalid input
@@ -144,9 +143,7 @@ public class WhiteboardClient {
             return ;
         }
         String[] tokens = input.split(" ");
-        // Choosing a whiteboard to work on
         if (tokens.length > 1) {
-            System.out.println("Token length > 1");
             if (tokens[0].equals("Username")){
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
@@ -161,6 +158,8 @@ public class WhiteboardClient {
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
                 }
+            } else if (tokens[0].equals("Updating") && tokens[1].equals("Clients")){
+                usersInWhiteboard.clear();
             }else if (tokens[0].equals("sameClient")){
                 if (!usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.add(tokens[1]);
@@ -195,12 +194,12 @@ public class WhiteboardClient {
                 int newStrokeSize = Integer.parseInt(tokens[6]);
                 whiteboards.getCanvas().commandErase(x1, y1, x2, y2, newStrokeSize);            
             } else {
-                System.err.println("Invalid Input Tokens greater than 1");
+                System.err.println("Invalid Input Tokens > 1");
                 System.err.println(input);
                 return ;
             }
         } else {
-            System.err.println("Invalid Input Tokens less than 1");
+            System.err.println("Invalid Input Tokens < 1");
             System.err.println(input);
             return ;
         }
@@ -241,6 +240,11 @@ public class WhiteboardClient {
         }
     }
 
+    /**
+     * Runs the Whiteboard Client.
+     * @param ipAddress Server IP Address
+     * @param port Server Port
+     */
     public static void runWhiteboardClient(String ipAddress, int port){
         WhiteboardClient client1 = new WhiteboardClient(800,600, ipAddress, port);
         client1.createWhiteboard(client1.whiteboards.clientName);
