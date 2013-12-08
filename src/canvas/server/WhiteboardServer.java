@@ -116,13 +116,6 @@ public class WhiteboardServer {
      * @param whiteboardName
      */
     private void getSameUsersWhiteboard(){
-        // create a hashmap of whiteboards to list of its clients
-        // go through all the clients and if the whiteboard does not exist in the hashmap add a key of the whiteboard to the map
-        // with an empty arraylist of strings
-        // if it does exist add the client to the list
-        // now go through all the keys in that hashmap (going through all the whiteboards) 
-        // and for all the clients in the list, send the client the updated list of users (using the sameClient prototcol)
-        // Gets all the clients working on the same Whiteboard and stores them in a list
         whiteboardToClientsMap.clear();
         // Updating whiteboardToClientsMap
         for (String client : clientToWhiteboardMap.keySet()){
@@ -165,11 +158,6 @@ public class WhiteboardServer {
                 String doneSending = "Done sending client names";
                 commandQueues.get(clientToThreadNumMap.get(client)).add(doneSending);
             }
-        }
-        
-        // FOR DEBUGGING PURPOSES DELETE WHEN WORKING
-        for (String whiteboard : whiteboardToClientsMap.keySet()){
-            System.out.println(whiteboard + " clients are " + whiteboardToClientsMap.get(whiteboard).toString());
         }
     }
 
