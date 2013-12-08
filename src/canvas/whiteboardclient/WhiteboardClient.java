@@ -224,7 +224,7 @@ public class WhiteboardClient extends JPanel {
         String[] tokens = input.split(" ");
         // Choosing a whiteboard to work on
         if (tokens.length > 1) {
-            if (tokens[1].equals("Username")){
+            if (tokens[0].equals("Username")){
                 getUsername("Username already taken.\n");
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
                 chooseWhiteboard();

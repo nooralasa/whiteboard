@@ -1,84 +1,46 @@
 package canvas.whiteboardclient;
 
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JColorChooser;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
-
-import canvas.ButtonPanel;
-import canvas.Whiteboard1;
-//import canvas.SidePanel;
+import canvas.WhiteboardGUI;
 
 /**
  * Canvas represents a drawing surface that allows the user to draw
  * on it freehand, with the mouse.
  */
 public class WhiteboardClient1 {
-    private String clientName;
-    private String whiteboard; // whiteboard name of the client
-    private final BlockingQueue<String> inputCommandsQueue; // may need this later for another thread to poll if too laggy
-    public final BlockingQueue<String> outputCommandsQueue;
+    private String whiteboardName;
+    public final BlockingQueue<String> outputCommandsQueue; //For communication with the server
     private final List<String> usersInWhiteboard;
-    private Whiteboard1 whiteboards;
-    private int height;
-    private int width;
+    private WhiteboardGUI whiteboards; //The GUI representation of our whiteboards
+
     /**
-     * Make a canvas.
-     * @param width width in pixels
-     * @param height height in pixels
+     * Makes a WhiteboardClient
+     * 
+     * @param width width of the whiteboard in pixels
+     * @param height height of the whiteboard in pixels
+     * @param ipAddress the ipAddress the Server is running on
+     * @param portNumber the port the Client uses to conect to the Server
      */
     public WhiteboardClient1(int width, int height, String ipAddress, int portNumber) {
-        outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
-        inputCommandsQueue = new ArrayBlockingQueue<String>(10000000); // may need this later see note in field dec
+        outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);     //MAX_INT doesn't work as an argument, thus a very large number is passed on
         usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
-        System.out.println("Got here");
         connectToServer(ipAddress, portNumber);
-        System.out.println("got here");
-        whiteboards = new Whiteboard1(width,height, outputCommandsQueue);
-        outputCommandsQueue.offer(whiteboards.getUsername(""));
-        //createWhiteboard("whiteboard");
+        whiteboards = new WhiteboardGUI(width,height, outputCommandsQueue);  
+        outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
     }
 
     public void createWhiteboard(String whiteboard) {
@@ -172,26 +134,17 @@ public class WhiteboardClient1 {
             return ;
         }
         String[] tokens = input.split(" ");
-        System.err.println("Tokens coming");
-        for (String token : tokens){
-            System.err.println(token);
-        }
-        System.err.println("No more token");
         // Choosing a whiteboard to work on
         if (tokens.length > 1) {
             System.out.println("Token length > 1");
-            if (tokens[1].equals("Username")){
+            if (tokens[0].equals("Username")){
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
                 String desiredWhiteboardName = whiteboards.chooseWhiteboard();
-                whiteboards.canvas.canvas = desiredWhiteboardName;
-                if (whiteboards.getExistingWhiteboards().contains(desiredWhiteboardName)){
-                    System.out.println("Is it noor? " + whiteboards.clientName);
-                    outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + desiredWhiteboardName);
-                } else{
-                    System.out.println("Is it noor? " + whiteboards.clientName);
-                    outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
-                }             
+                //updates the client's whiteboard
+                whiteboardName = desiredWhiteboardName;
+                //updates the canvas name so we know which canvas to edit
+                whiteboards.canvas.canvas = desiredWhiteboardName;             
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
@@ -201,23 +154,16 @@ public class WhiteboardClient1 {
                     usersInWhiteboard.add(tokens[1]);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                System.out.println("Done receiving whiteboards!");
-                System.out.println(whiteboards.getExistingWhiteboards().toString());
-                // here should be the command to update the panel displaying the whiteboards 
+                //SidePanel.updateWhiteboardsList(whiteboards.getExistingWhiteboards());
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
-                System.out.println("Done sending clients!");
-                System.out.println(usersInWhiteboard.toString());
-                // here should be the command to update the panel displaying the clients on the same whiteboard 
-                usersInWhiteboard.clear();
+               //SidePanel.updateClientsList(UsersInWhiteboard);
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
-                whiteboard = tokens[1];
+                whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
             } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
                 whiteboards.helpBox();
-            } else if (tokens[0].equals("Thank") && tokens[1].equals("you!")) {
-                System.err.println("Connection terminated"); //TODO: terminate connection
-            } else if (tokens[0].equals(whiteboard) && (tokens[1].equals("draw"))){
+            } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("draw"))){
                 int x1 = Integer.parseInt(tokens[2]);
                 int y1 = Integer.parseInt(tokens[3]);
                 int x2 = Integer.parseInt(tokens[4]);
@@ -227,7 +173,7 @@ public class WhiteboardClient1 {
                 String greenValue = tokens[8];
                 String blueValue = tokens[9];
                 whiteboards.getCanvas().commandDraw(x1, y1, x2, y2, newStrokeSize, redValue, greenValue, blueValue);
-            } else if (tokens[0].equals(whiteboard) && (tokens[1].equals("erase"))){
+            } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("erase"))){
                 int x1 = Integer.parseInt(tokens[2]);
                 int y1 = Integer.parseInt(tokens[3]);
                 int x2 = Integer.parseInt(tokens[4]);

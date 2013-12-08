@@ -3,6 +3,8 @@ package canvas;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,18 +15,19 @@ import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import canvas.whiteboardclient.WhiteboardClient;
 import canvas.whiteboardclient.WhiteboardClient1;
 
-public class Whiteboard1 extends JFrame {
+public class WhiteboardGUI extends JFrame {
     
-    public Canvas1 canvas;
+    public Canvas canvas;
     //private WhiteboardClient1 client;
-    private ButtonPanel1 buttonPanel;
+    private ButtonPanel buttonPanel;
     public String clientName;
-    private String whiteboard;
     private final List<String> existingWhiteboards;
+    public final BlockingQueue<String> outputCommandsQueue;
     
 
 
@@ -33,10 +36,11 @@ public class Whiteboard1 extends JFrame {
      * @param width width in pixels
      * @param height height in pixels
      */
-    public Whiteboard1(int width, int height, BlockingQueue<String> outputCommandsQueue) {
+    public WhiteboardGUI(int width, int height, BlockingQueue<String> outputCommandsQueue) {
        // this.client = new WhiteboardClient1(width, height);
-        this.canvas = new Canvas1(width,height, outputCommandsQueue);
-        this.buttonPanel = new ButtonPanel1(width, 50, canvas, this);
+        this.outputCommandsQueue = outputCommandsQueue;
+        this.canvas = new Canvas(width,height, outputCommandsQueue);
+        this.buttonPanel = new ButtonPanel(width, 50, this);
         this.existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
     }
     
@@ -55,7 +59,7 @@ public class Whiteboard1 extends JFrame {
         return existingWhiteboards;
     }
     
-    public Canvas1 getCanvas() {
+    public Canvas getCanvas() {
         return canvas;
     }
     
@@ -93,35 +97,12 @@ public class Whiteboard1 extends JFrame {
         whiteboardNames += "\n";   
         String message = "Enter the name of an existing whiteboard or type in a new whiteboard name";
         String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message, "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
-        this.whiteboard = desiredWhiteboardName;
+        if (existingWhiteboards.contains(desiredWhiteboardName)){
+            outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
+        } else{
+            outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
+        }
         return desiredWhiteboardName;
-    }
-    
-    
-    /**
-     * Creates a popup window to get a new whiteboard name from the user.
-     * @param message represents the special message to attach depending on the situation
-     */
-    private String getNewWhiteboardName(String message){
-        JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
-        Object[] possibilities = null;
-        String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
-        this.whiteboard = desiredWhiteboardName;
-        return "addBoard " + desiredWhiteboardName;
-        //client.outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
-    }
-    
-    /**
-     * Gets the Whiteboard Name from the user.
-     * @param message represents the special message to attach depending on the situation
-     */
-    private String getWhiteboard(String message){
-        JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
-        Object[] possibilities = null;
-        String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
-        this.whiteboard = desiredWhiteboardName;
-        return "addBoard " + desiredWhiteboardName;
-        //client.outputCommandsQueue.offer("addBoard " + desiredWhiteboardName); //TODO: same as 45
     }
     
     /**
@@ -151,6 +132,17 @@ public class Whiteboard1 extends JFrame {
         // set up the UI (on the event-handling thread)
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+                addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+
+                        outputCommandsQueue.offer("Disconnect " + clientName);
+
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+                setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
                 setVisible(true);
             }
         });
@@ -161,7 +153,7 @@ public class Whiteboard1 extends JFrame {
      */
     public static void main(String[] args) {
         BlockingQueue<String> queue = new ArrayBlockingQueue<String>(10000000);
-        Whiteboard1 client = new Whiteboard1(800,600,queue);
+        WhiteboardGUI client = new WhiteboardGUI(800,600,queue);
         client.createWindow("test");
         client.makeWhiteboard(); // TODO: what is this? should not be passing self into own method can just use this...
     }

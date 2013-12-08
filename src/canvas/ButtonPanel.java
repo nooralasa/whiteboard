@@ -14,6 +14,8 @@ import javax.swing.JToggleButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import canvas.Canvas;
+import canvas.WhiteboardGUI;
 import canvas.whiteboardclient.WhiteboardClient;
 
 public class ButtonPanel extends JPanel {
@@ -22,15 +24,17 @@ public class ButtonPanel extends JPanel {
     private JButton colorButton;
     private JSlider strokeSize;
     private JLabel strokeSizeLabel;
-    private final JLabel strokeState;
-    private WhiteboardClient whiteboard;
+    private final JLabel strokeState;    
+    private WhiteboardGUI whiteboard;
+    private Canvas canvas;
     static final int SLIDER_MIN= 0;
     static final int SLIDER_MAX = 30;
     static final int SLIDER_INIT = 0; 
 
 
-    public ButtonPanel(int width, int height, final WhiteboardClient whiteboard){
+    public ButtonPanel (int width, int height, final WhiteboardGUI whiteboard){
         this.whiteboard = whiteboard;
+        this.canvas = whiteboard.canvas;
         this.setPreferredSize(new Dimension(width, height));
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
@@ -43,12 +47,12 @@ public class ButtonPanel extends JPanel {
         drawButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if (whiteboard.drawMode){
-                        whiteboard.drawMode = false;
+                    if (canvas.drawMode){
+                        canvas.drawMode = false;
                         drawButton.setText("Draw");
                         strokeState.setText("Stroke State: Erase");
                     } else{
-                        whiteboard.drawMode = true;
+                        canvas.drawMode = true;
 
                         drawButton.setText("Erase");
                         strokeState.setText("Stroke State: Draw");
@@ -100,7 +104,7 @@ public class ButtonPanel extends JPanel {
                 JSlider source =(JSlider) e.getSource();
                 //only when not adjusting slider
                 if (!source.getValueIsAdjusting()) {
-                    whiteboard.setStrokeState(source.getValue());
+                    canvas.setStrokeState(source.getValue());
                 }
             }
         });
@@ -137,4 +141,5 @@ public class ButtonPanel extends JPanel {
                        
                 );
     }
+
 }
