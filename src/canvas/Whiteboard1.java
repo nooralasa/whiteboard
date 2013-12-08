@@ -22,7 +22,7 @@ public class Whiteboard1 extends JFrame {
     public Canvas1 canvas;
     //private WhiteboardClient1 client;
     private ButtonPanel1 buttonPanel;
-    private String clientName;
+    public String clientName;
     private String whiteboard;
     private final List<String> existingWhiteboards;
     
@@ -33,15 +33,16 @@ public class Whiteboard1 extends JFrame {
      * @param width width in pixels
      * @param height height in pixels
      */
-    public Whiteboard1(int width, int height, BlockingQueue<String> outputCommandsQueue, String newWhiteboard) {
+    public Whiteboard1(int width, int height, BlockingQueue<String> outputCommandsQueue) {
        // this.client = new WhiteboardClient1(width, height);
         this.canvas = new Canvas1(width,height, outputCommandsQueue);
         this.buttonPanel = new ButtonPanel1(width, 50, canvas, this);
         this.existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
-        
-        getUsername("");
+    }
+    
+    public void createWindow(String clientName) {
 
-        setTitle(newWhiteboard);
+        setTitle(clientName);
         setState(java.awt.Frame.NORMAL);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -160,7 +161,8 @@ public class Whiteboard1 extends JFrame {
      */
     public static void main(String[] args) {
         BlockingQueue<String> queue = new ArrayBlockingQueue<String>(10000000);
-        Whiteboard1 client = new Whiteboard1(800,600,queue,"test");
+        Whiteboard1 client = new Whiteboard1(800,600,queue);
+        client.createWindow("test");
         client.makeWhiteboard(); // TODO: what is this? should not be passing self into own method can just use this...
     }
     
