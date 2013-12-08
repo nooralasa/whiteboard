@@ -18,8 +18,7 @@ import java.util.concurrent.BlockingQueue;
 import canvas.WhiteboardGUI;
 
 /**
- * Canvas represents a drawing surface that allows the user to draw
- * on it freehand, with the mouse.
+ * Whiteboard Client represents a client working on the Whiteboard.
  */
 public class WhiteboardClient {
     private String whiteboardName;
@@ -44,7 +43,7 @@ public class WhiteboardClient {
     }
 
     /**
-     * 
+     * Creates the Whiteboard Window and makes the Whiteboard.
      * @param whiteboard
      */
     public void createWhiteboard(String whiteboard) {
@@ -121,9 +120,9 @@ public class WhiteboardClient {
     }
 
     /**
-     * Handler for client input, performing requested operations and returning an output message.
+     * Handler for input, performing requested operations and returning an output message.
      * 
-     * @param input message from client
+     * @param input message from server
      */
     private void handleResponse(String input) {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
@@ -137,9 +136,7 @@ public class WhiteboardClient {
             return ;
         }
         String[] tokens = input.split(" ");
-        // Choosing a whiteboard to work on
         if (tokens.length > 1) {
-            System.out.println("Token length > 1");
             if (tokens[0].equals("Username")){
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
@@ -186,12 +183,12 @@ public class WhiteboardClient {
                 int newStrokeSize = Integer.parseInt(tokens[6]);
                 whiteboards.getCanvas().commandErase(x1, y1, x2, y2, newStrokeSize);            
             } else {
-                System.err.println("Invalid Input Tokens greater than 1");
+                System.err.println("Invalid Input Tokens > 1");
                 System.err.println(input);
                 return ;
             }
         } else {
-            System.err.println("Invalid Input Tokens less than 1");
+            System.err.println("Invalid Input Tokens < 1");
             System.err.println(input);
             return ;
         }
@@ -227,6 +224,11 @@ public class WhiteboardClient {
         }
     }
 
+    /**
+     * Runs the Whiteboard Client.
+     * @param ipAddress Server IP Address
+     * @param port Server Port
+     */
     public static void runWhiteboardClient(String ipAddress, int port){
         WhiteboardClient client1 = new WhiteboardClient(800,600, ipAddress, port);
         client1.createWhiteboard(client1.whiteboards.clientName);

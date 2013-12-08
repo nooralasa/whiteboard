@@ -1,6 +1,7 @@
 package canvas.server;
 
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -19,11 +20,16 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
+/**
+ * Whiteboard Server
+ *
+ */
 public class WhiteboardServer {
     private final ServerSocket serverSocket;
     private final AtomicInteger numOfClients = new AtomicInteger(0);
     private final AtomicInteger threadID = new AtomicInteger(-1);
     private final Map<String, String> clientToWhiteboardMap;
+    private final Map<String, ArrayList<String>> whiteboardToClientsMap;
     private final Map<String, ArrayList<String>> whiteboardToCommandsMap;
     private final Map<String, Integer> clientToThreadNumMap;
     private final List<BlockingQueue<String>> commandQueues;
@@ -36,6 +42,8 @@ public class WhiteboardServer {
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         clientToWhiteboardMap = Collections.synchronizedMap(new HashMap<String, String>()); // maps each client to the whiteboard it is working on
+        whiteboardToClientsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>()); // maps each whiteboard to its current clients 
+        //(slightly different than clientToWhiteboard in that it saves computation time from having to gather this information, for convenience in coding)
         whiteboardToCommandsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>()); // maps each whiteboard to its commands
         commandQueues = Collections.synchronizedList(new ArrayList<BlockingQueue<String>>());
         clientToThreadNumMap = Collections.synchronizedMap(new HashMap<String, Integer>());
@@ -73,8 +81,6 @@ public class WhiteboardServer {
         whiteboardToCommandsMap.put("Board3", emptyCommandAndClientList);
 
     }
-    
-    
 
     /**
      * Sends Existing Whiteboards to All Clients
@@ -103,31 +109,53 @@ public class WhiteboardServer {
         String message = "Done sending whiteboard names";
         commandQueues.get(threadNum).add(message);
     }
-    
+
     /**
      * Sends out to all clients that are working on the same whiteboard the names of the other clients working on the whiteboard
      * @param threadNum
      * @param whiteboardName
      */
-    private void getSameUsersWhiteboard(final int threadNum, String whiteboardName){
-        ArrayList<String> sameClients = new ArrayList<String>(); // clients working on the same whiteboard
-        ArrayList<String> sameClientsCommands = new ArrayList<String>();
+    private void getSameUsersWhiteboard(){
+        // create a hashmap of whiteboards to list of its clients
+        // go through all the clients and if the whiteboard does not exist in the hashmap add a key of the whiteboard to the map
+        // with an empty arraylist of strings
+        // if it does exist add the client to the list
+        // now go through all the keys in that hashmap (going through all the whiteboards) 
+        // and for all the clients in the list, send the client the updated list of users (using the sameClient prototcol)
         // Gets all the clients working on the same Whiteboard and stores them in a list
-        for (String clients : clientToWhiteboardMap.keySet()){
-            if (clientToWhiteboardMap.get(clients).equals(whiteboardName)){
-                sameClients.add(clients);
-                String clientCommand = "sameClient " + clients;
-                sameClientsCommands.add(clientCommand);
+
+        // Updating whiteboardToClientsMap
+        for (String client : clientToWhiteboardMap.keySet()){
+            // If the whiteboardToClientsMap doesn't have the Whiteboard
+            if (!whiteboardToClientsMap.containsKey(clientToWhiteboardMap.get(client))){
+                ArrayList<String> currentClients = new ArrayList<String>(); // clients working on the same whiteboard
+                currentClients.add(client); // add the client to the list of clients working on the whiteboard
+                whiteboardToClientsMap.put(clientToWhiteboardMap.get(client), currentClients);                
+            } else{
+                // Add the client to the clients in the list of the Whiteboard it is working on
+                whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).add(client);           
             }
         }
 
-        // Send each client that shares the whiteboard all of the sameClients
-        for (String clients : sameClients){
-            for (String clientCommands : sameClientsCommands){
-                commandQueues.get(clientToThreadNumMap.get(clients)).add(clientCommands);
+        // Go through all the whiteboards and send all the clients in each the other clients
+        for (String whiteboard : whiteboardToClientsMap.keySet()){
+            ArrayList<String> sameClients = whiteboardToClientsMap.get(whiteboard);
+            ArrayList<String> sameClientsCommands = new ArrayList<String>();
+            
+            // Generates the String commands to denote same clients
+            for (String client : sameClients){
+                String clientCommand = "sameClient " + client;
+                sameClientsCommands.add(clientCommand); 
             }
-            String doneSending = "Done sending client names";
-            commandQueues.get(clientToThreadNumMap.get(clients)).add(doneSending);
+            
+            // Send each client that shares the whiteboard all of the sameClients
+            for (String client : sameClients){
+                for (String clientCommands : sameClientsCommands){
+                    commandQueues.get(clientToThreadNumMap.get(client)).add(clientCommands);
+                }
+                String doneSending = "Done sending client names";
+                commandQueues.get(clientToThreadNumMap.get(client)).add(doneSending);
+            }
         }
     }
 
@@ -137,29 +165,10 @@ public class WhiteboardServer {
      * @param threadNum the threadNum of the client (corresponding to the position of the commandQueue in the list)
      */
     private void createThreads(final Socket socket, final Integer threadNum){
-        final String welcome = "Welcome to this Whiteboard Server. ";
-        final String hello = " people are collaborating including you. Type 'help' for help.";
         // start a new thread to handle the connection
         Thread inputThread = new Thread(new Runnable() {
             public void run() {
                 System.out.println("Starting Input Thread with Thread " + threadNum);
-                PrintWriter out;
-                String userlist = "";
-                for (String users : clientToWhiteboardMap.keySet()){
-                    userlist += users + " ";
-                }
-                try {
-                    out = new PrintWriter(socket.getOutputStream(), true);
-                    out.println(welcome + numOfClients + hello);
-                    if (numOfClients.get() != 1){
-                        out.println("Users currently on the server are");
-                        out.println(userlist);
-                    } else {
-                        out.println("You are the only user");
-                    }
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
                 // the client socket object is now owned by this thread,
                 // and mustn't be touched again in the main thread
                 try {
@@ -302,7 +311,7 @@ public class WhiteboardServer {
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
-                    getSameUsersWhiteboard(threadNum, tokens[2]);
+                    getSameUsersWhiteboard();
                     commandQueues.get(threadNum).add(tokens[0] + " on board " + tokens[2]); 
                     System.out.println(tokens[0] + " on board " + tokens[2]);
                     for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
