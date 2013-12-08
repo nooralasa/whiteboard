@@ -72,7 +72,14 @@ public class WhiteboardGUI extends JFrame {
     public String getUsername(String message){
         final JFrame popup = new JFrame(); // Popup asking for Username
         Object[] possibilities = null;
-        String desiredClientName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+        
+        String desiredClientName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "username");
+
+        while (desiredClientName.equals("") || desiredClientName.contains(" ")|| desiredClientName.equals(null)) {
+            String noSpaceMessage = "Please enter a username with no spaces composed of at least 1 alphanumeric character \n";
+            desiredClientName = (String) JOptionPane.showInputDialog(popup, noSpaceMessage + "Please input a valid username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+
+        }
         this.clientName = desiredClientName;
         return "new username " + desiredClientName;
     }
