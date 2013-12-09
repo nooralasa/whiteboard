@@ -147,7 +147,8 @@ public class WhiteboardClient {
             if (tokens[0].equals("Username")){
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
-                whiteboards.chooseWhiteboard();
+                whiteboards.chooseWhiteboardPopup();
+                //(erwin) need this to update the whiteboard list in sidepanel (as a new whiteboard will be made)
                 // should not set what thw whiteboard is until you actually get it assigned
             } else if (tokens[1].equals("on") && tokens[2].equals("board")) {
                 //updates the client's whiteboard
@@ -157,21 +158,29 @@ public class WhiteboardClient {
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
+                    //(erwin) added this in to update sidepanel
+                    whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
                 }
             } else if (tokens[0].equals("Updating") && tokens[1].equals("Clients")){
                 usersInWhiteboard.clear();
+                //(erwin) added this in to update sidepanel
+                whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             }else if (tokens[0].equals("sameClient")){
                 if (!usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.add(tokens[1]);
+                    //(erwin) added this in to update sidepanel
+                    whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards());
+                whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
                 System.out.println(whiteboards.getExistingWhiteboards());
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
+                //(erwin)added this to update when new board added
+                whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
                 whiteboards.updateTitle(whiteboardName);
                 //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
             } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
