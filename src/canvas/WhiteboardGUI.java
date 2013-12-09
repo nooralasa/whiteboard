@@ -72,7 +72,7 @@ public class WhiteboardGUI extends JFrame {
     public String getUsername(String message){
         final JFrame popup = new JFrame(); // Popup asking for Username
         Object[] possibilities = null;
-        
+        popup.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         String desiredClientName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "username");
 
         while (desiredClientName.equals("") || desiredClientName.contains(" ")|| desiredClientName.equals(null)) {
