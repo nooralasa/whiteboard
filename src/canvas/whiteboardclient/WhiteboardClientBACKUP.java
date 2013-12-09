@@ -68,7 +68,7 @@ public class WhiteboardClientBACKUP extends JPanel {
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);
         existingWhiteboards = new ArrayList<String>();
         usersInWhiteboard = new ArrayList<String>();
-        sidePanel = new SidePanel(250, height,this);
+//        sidePanel = new SidePanel(250, height,this);
         connectToServer(ipAddress, portNumber);
         getUsername("");
     }
@@ -499,8 +499,8 @@ public class WhiteboardClientBACKUP extends JPanel {
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLayout(new BorderLayout());
                 window.add(canvas, BorderLayout.CENTER);
-                ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
-                window.add(buttonPanel, BorderLayout.SOUTH);
+//                ButtonPanel buttonPanel = new ButtonPanel(x, 50, canvas);
+//                window.add(buttonPanel, BorderLayout.SOUTH);
                 window.add(sidePanel, BorderLayout.EAST);
                 window.pack();
                 window.setVisible(true);
