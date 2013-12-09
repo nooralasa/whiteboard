@@ -224,11 +224,9 @@ public class WhiteboardServer {
                 clientToWhiteboardMap.remove(tokens[1]);
                 clientToThreadNumMap.remove(tokens[1]); 
             } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
-                // put the input in the whiteboard commandlist
-                ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]); //TODO: should be able to just do a .add here and not have the next 3 lines
-                commands.add(input);
-                whiteboardToCommandsMap.put(tokens[0], commands);
-                // putting commands into all relevant queues
+                // Put the input in the Whiteboard commandlist
+                whiteboardToCommandsMap.get(tokens[0]).add(input);
+                // Putting commands into all collaborator queues
                 for (String keys : clientToWhiteboardMap.keySet()){
                     if (clientToWhiteboardMap.get(keys).equals(tokens[0])){
                         commandQueues.get(clientToThreadNumMap.get(keys)).add(input);
