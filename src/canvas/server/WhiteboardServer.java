@@ -1,7 +1,6 @@
 package canvas.server;
 
 import java.io.BufferedReader;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -21,8 +20,8 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 
 /**
- * Whiteboard Server represents
- *
+ * Whiteboard Server represents a server that allows many clients to collaborate on 
+ * whiteboards simultaneously over a network connection.
  */
 public class WhiteboardServer {
     private final ServerSocket serverSocket;
@@ -36,37 +35,51 @@ public class WhiteboardServer {
 
     /**
      * Creates a Whiteboard Server.
-     * @param port
+     * @param port represents the listening port of the Whiteboard Server's socket
      * @throws IOException
      */
     public WhiteboardServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        clientToWhiteboardMap = Collections.synchronizedMap(new HashMap<String, String>()); // maps each client to the whiteboard it is working on
-        whiteboardToClientsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>()); // maps each whiteboard to its current clients 
-        //(slightly different than clientToWhiteboard in that it saves computation time from having to gather this information, for convenience in coding)
-        whiteboardToCommandsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>()); // maps each whiteboard to its commands
+
+        // Maps each client to the Whiteboard it is working on
+        clientToWhiteboardMap = Collections.synchronizedMap(new HashMap<String, String>());
+
+        // Maps each Whiteboard to all of its clients (similar to clientToWhiteboardMap), used to save repeat iterations in message passing 
+        whiteboardToClientsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>());
+
+        // Maps each Whiteboard to its Commands History
+        whiteboardToCommandsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>());
+
+        // List of Blocking Queues used to send messages to clients
         commandQueues = Collections.synchronizedList(new ArrayList<BlockingQueue<String>>());
+
+        // Maps each client to its threadnum which corresponds to its Blocking Queue in the commandsQueue
         clientToThreadNumMap = Collections.synchronizedMap(new HashMap<String, Integer>());
+
+        // Creates the Server's starting Whiteboards
         createBoards();
     }
 
     /**
-     * Run the server, listening for client connections and handling them. Never
+     * Run the Whiteboard Server, listening for client connections and handling them. Never
      * returns unless an exception is thrown.
      * 
-     * @throws IOException
-     *             if the main server socket is broken (IOExceptions from
-     *             individual clients do *not* terminate serve())
+     * @throws IOException if the main server socket is broken (IOExceptions from
+     *                     individual clients do *not* terminate serve())
      */
     public void serve() throws IOException {
         while (true) {
-            // block until a client connects
+            // Block until a client connects
             final Socket socket = serverSocket.accept();
             numOfClients.getAndIncrement();
             threadID.getAndIncrement();
+
+            // Creates the blocking queue for each client and adds it to the commandQueues list
             BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<String>(100000);
             commandQueues.add(blockingQueue);
+
             final Integer threadNum = threadID.get();
+            // Create the Input and Output Threads for each client
             createThreads(socket, threadNum);
         }
     }
@@ -79,119 +92,35 @@ public class WhiteboardServer {
         whiteboardToCommandsMap.put("Board1", emptyCommandAndClientList);
         whiteboardToCommandsMap.put("Board2", emptyCommandAndClientList);
         whiteboardToCommandsMap.put("Board3", emptyCommandAndClientList);
-
     }
 
     /**
-     * Sends Existing Whiteboards to All Clients
-     */
-    private void getExistingWhiteboardsAll(){
-        for (String whiteboard : whiteboardToCommandsMap.keySet()){
-            String whiteboards = "Existing Whiteboards " + whiteboard;
-            for (BlockingQueue<String> commandQueue : commandQueues){
-                commandQueue.offer(whiteboards);
-            }
-        }
-        String message = "Done sending whiteboard names";
-        for (BlockingQueue<String> commandQueue : commandQueues){
-            commandQueue.offer(message);
-        }
-    }
-
-    /**
-     * Sends Existing Whiteboards to One Clients
-     */
-    private void getExistingWhiteboardsOne(final int threadNum){
-        for (String whiteboard : whiteboardToCommandsMap.keySet()){
-            String whiteboards = "Existing Whiteboards " + whiteboard;
-            commandQueues.get(threadNum).add(whiteboards);
-        }
-        String message = "Done sending whiteboard names";
-        commandQueues.get(threadNum).add(message);
-    }
-
-    /**
-     * Sends out to all clients that are working on the same whiteboard the names of the other clients working on the whiteboard
-     * @param threadNum
-     * @param whiteboardName
-     */
-    private void getSameUsersWhiteboard(){
-        whiteboardToClientsMap.clear();
-        // Updating whiteboardToClientsMap
-        for (String client : clientToWhiteboardMap.keySet()){
-            // If the whiteboardToClientsMap doesn't have the Whiteboard
-            if (!whiteboardToClientsMap.containsKey(clientToWhiteboardMap.get(client))){
-                System.out.println("Adding " + clientToWhiteboardMap.get(client) + " to whiteboardToClientsMap");
-                ArrayList<String> currentClients = new ArrayList<String>(); // clients working on the same whiteboard
-                currentClients.add(client); // add the client to the list of clients working on the whiteboard
-                whiteboardToClientsMap.put(clientToWhiteboardMap.get(client), currentClients);    
-                System.out.println("Current Clients in " + clientToWhiteboardMap.get(client) + " are " + whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).toString());
-            } else{
-                // Add the client to the clients in the list of the Whiteboard it is working on (ONLY IF IT ISN'T ALREADY THERE)
-                if (!whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).contains(client)){
-                    System.out.println("Adding Client " + client + " to whiteboardToClientsMap");
-                    whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).add(client); 
-                    System.out.println("Current Clients in " + clientToWhiteboardMap.get(client) + " are " + whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).toString());
-                }
-            }
-        }
-
-        // Go through all the whiteboards and send all the clients in each the other clients
-        for (String whiteboard : whiteboardToClientsMap.keySet()){
-            ArrayList<String> sameClients = whiteboardToClientsMap.get(whiteboard);
-            ArrayList<String> sameClientsCommands = new ArrayList<String>();
-
-            // Generates the String commands to denote same clients
-            for (String client : sameClients){
-                String clientCommand = "sameClient " + client;
-                sameClientsCommands.add(clientCommand); 
-            }
-
-            // Send each client that shares the whiteboard all of the sameClients
-            for (String client : sameClients){
-                String sending = "Updating Clients";
-                commandQueues.get(clientToThreadNumMap.get(client)).add(sending);
-                for (String clientCommands : sameClientsCommands){
-                    System.out.println("Sending " + clientCommands + " to " + client);
-                    commandQueues.get(clientToThreadNumMap.get(client)).add(clientCommands);
-                }
-                String doneSending = "Done sending client names";
-                commandQueues.get(clientToThreadNumMap.get(client)).add(doneSending);
-            }
-        }
-    }
-
-    /**
-     * Creates and starts threads to handle inputs and outputs between the server and specific client.
-     * @param socket socket that the client is connected to
-     * @param threadNum the threadNum of the client (corresponding to the position of the commandQueue in the list)
+     * Creates and starts threads to handle inputs and outputs between the server and each client.
+     * @param socket represents the socket that the client is connected to
+     * @param threadNum represents the position of the client's blockingQueue in the commandQueues list
      */
     private void createThreads(final Socket socket, final Integer threadNum){
-        // start a new thread to handle the connection
+        // Thread to handle inputs from the client
         Thread inputThread = new Thread(new Runnable() {
             public void run() {
                 System.out.println("Starting Input Thread with Thread " + threadNum);
-                // the client socket object is now owned by this thread,
-                // and mustn't be touched again in the main thread
                 try {
                     handleClientInput(socket, threadNum);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
         });
 
-        // start a new thread to handle outputs
+        // Thread to handle outputs to the client
         Thread outputThread = new Thread(new Runnable() {
             public void run() {
                 System.out.println("Starting Output Thread with Thread " + threadNum);
                 try {
                     handleOutputs(socket, threadNum);
                 } catch (IOException | InterruptedException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
@@ -201,24 +130,23 @@ public class WhiteboardServer {
     }
 
     /**
-     * Polls the output commandQueues of each client and writes items as text messages to the client's socket. 
+     * Polls the output BlockingQueue of each client and writes items as text messages to the client's socket. 
      * 
-     * @param socket
-     *            socket where the client is connected
-     * @throws IOException
-     *             if connection has an error or terminates unexpectedly
+     * @param socket represents the socket that the client is connected to
+     * @throws IOException if connection has an error or terminates unexpectedly
      * @throws InterruptedException 
      */
     private void handleOutputs(final Socket socket, final Integer threadNum) throws IOException, InterruptedException {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         try {
-            while (true){ // constantly poll the commands queue
+            // Constantly poll the client's Blocking Queue in the Commands Queue
+            while (true){ 
                 BlockingQueue<String> commandsQueue = commandQueues.get(threadNum);
                 while (commandsQueue.peek() != null){
                     String output = (String) commandsQueue.take();
-                    //                    System.out.println(output); // so server can see what is being output DELETE later
                     out.println(output);
-                    if (output.equals("Thank you!")) { // this is if thank you is the disconnect message
+                    // When the disconnect message is received, terminate the connection.
+                    if (output.equals("Thank you!")) {
                         numOfClients.getAndDecrement();
                         out.close();
                         socket.close();
@@ -232,12 +160,10 @@ public class WhiteboardServer {
     }
 
     /**
-     * Listens to the client socket for messages and passes inputs to the handleRequest().
+     * Listens to the client socket for messages and passes inputs to handleRequest to be handled.
      * 
-     * @param socket
-     *            socket where the client is connected
-     * @throws IOException
-     *             if connection has an error or terminates unexpectedly
+     * @param socket represents the socket the client is connected to
+     * @throws IOException if connection has an error or terminates unexpectedly
      * @throws InterruptedException 
      */
     private void handleClientInput(final Socket socket, final Integer threadNum) throws IOException, InterruptedException {
@@ -253,51 +179,53 @@ public class WhiteboardServer {
     }
 
     /**
-     * Parses client input, performing appropriate operations. 
-     * 
-     * @param input message from client
-     * @return message to client
+     * Parses client input and performs the appropriate operations. 
+     * @param input represents the text message from the client
+     * @param threadNum represents the position of the client's blockingQueue in the commandQueues list
      */
     private void handleRequest(final String input, final Integer threadNum) {
         String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
-                + "(help)|(bye)|(new username [^=]*)|(addBoard [^=]*)";
-        if (!input.matches(regex)) { // Invalid Input
-            System.err.println("Not in REGEX :(");
-            commandQueues.get(threadNum).add("Invalid Input Received by Server");
+                + "(Disconnect [^=]*)|(new username [^=]*)|(addBoard [^=]*)";
+        // If the input is not defined in the regex
+        if (!input.matches(regex)) {
+            System.err.println("Input not in REGEX");
             return ;
         }
         String[] tokens = input.split(" ");
-        // Adding username to the list of usernames
-        if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
-            // If the client doesn't exist
-            if (!clientToWhiteboardMap.containsKey(tokens[2])){
-                clientToWhiteboardMap.put(tokens[2],"");
-                clientToThreadNumMap.put(tokens[2], threadNum);
-                getExistingWhiteboardsOne(threadNum); // send existing whiteboards only to the user that just joined
-                commandQueues.get(threadNum).add("Select a whiteboard");
-            } else{ // case in which the username is already in the map
-                commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
-            }
-        } else if (tokens[0].equals("addBoard")){
-            if (whiteboardToCommandsMap.containsKey(tokens[1])){
-                commandQueues.get(threadNum).add("Whiteboard already exists."); // I don't think this is possible anymore
-            } else{
-                ArrayList<String> commandList = new ArrayList<String>();
-                whiteboardToCommandsMap.put(tokens[1], commandList);
-                commandQueues.get(threadNum).add("Board " + tokens[1] + " added");
-            }
-            getExistingWhiteboardsAll(); // Send existing whiteboards to all users
-        } else if (tokens[0].equals("help")) {
-            // 'help' request
-            commandQueues.get(threadNum).add("Help"); // actually probably don't need to send a help message as the help message should be stored locally on the client
-        } else if (tokens[0].equals("bye")) {
-            //terminate connection
-            System.err.println("Connection terminated");
-            commandQueues.get(threadNum).add("Thank you!"); // probably don't need this since the client should be allowed to terminate connection on own end
-        } else if (tokens.length > 1) {
-            if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
+        if (tokens.length > 1) {
+            if ((tokens[0].equals("new")) && (tokens[1].equals("username"))){
+                // If the username doesn't already exist in the server
+                if (!clientToWhiteboardMap.containsKey(tokens[2])){
+                    clientToWhiteboardMap.put(tokens[2],"");
+                    clientToThreadNumMap.put(tokens[2], threadNum);
+                    // Send existing Whiteboard names only to the user that just joined
+                    getExistingWhiteboardsOne(threadNum);
+                    commandQueues.get(threadNum).add("Select a whiteboard");
+                } else{ // If the username already exists in the server
+                    commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
+                }
+            } else if (tokens[0].equals("addBoard")){
+                if (whiteboardToCommandsMap.containsKey(tokens[1])){
+                    // If the Whiteboard already exists in the server
+                    commandQueues.get(threadNum).add("Whiteboard already exists.");
+                } else{
+                    // Adds a new Whiteboard to the Server
+                    ArrayList<String> commandList = new ArrayList<String>();
+                    whiteboardToCommandsMap.put(tokens[1], commandList);
+                    commandQueues.get(threadNum).add("Board " + tokens[1] + " added");
+                }
+                // Send existing Whiteboard names to all users
+                getExistingWhiteboardsAll();
+            } else if (tokens[0].equals("Disconnect")) {
+                //terminate connection //TODO: need to refine
+                System.err.println("Connection terminated");
+                commandQueues.get(threadNum).add("Connection terminated"); 
+                //Remove client from clientTothreadNumMap and from clientToWhiteboardMap 
+                clientToWhiteboardMap.remove(tokens[1]);
+                clientToThreadNumMap.remove(tokens[1]); 
+            } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
                 // put the input in the whiteboard commandlist
-                ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]);
+                ArrayList<String> commands = whiteboardToCommandsMap.get(tokens[0]); //TODO: should be able to just do a .add here and not have the next 3 lines
                 commands.add(input);
                 whiteboardToCommandsMap.put(tokens[0], commands);
                 // putting commands into all relevant queues
@@ -306,28 +234,102 @@ public class WhiteboardServer {
                         commandQueues.get(clientToThreadNumMap.get(keys)).add(input);
                     }
                 }
-            } else if (tokens[1].equals("selectBoard")) { // Selecting board
+            } else if (tokens[1].equals("selectBoard")) {
+                // If the client doesn't exist
                 if (!clientToWhiteboardMap.containsKey(tokens[0])){
                     commandQueues.get(threadNum).add("Username does not exist.");
+                    // If the whiteboard doesn't exist
                 } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
                     commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
+                    // Map the client to its Whiteboard
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
+                    // Update all clients of the collaborator names
                     getSameUsersWhiteboard();
                     commandQueues.get(threadNum).add(tokens[0] + " on board " + tokens[2]); 
                     System.out.println(tokens[0] + " on board " + tokens[2]);
-                    for (String command : whiteboardToCommandsMap.get(tokens[2])){ // sending all previous commands
+                    // Send Whiteboard history of commands to the client
+                    for (String command : whiteboardToCommandsMap.get(tokens[2])){
                         commandQueues.get(threadNum).add(command);
                     }
                 }
             }
-        } else { // Invalid Input
-            System.err.println("Invalid Input NO ACTION");
-            commandQueues.get(threadNum).add("Invalid Input HERE");
+        } else {
+            System.err.println("Input in Regex but no specified action.");
+        }
+    }
+
+    /**
+     * Sends the names of the current Whiteboards on the server to all clients
+     */
+    private void getExistingWhiteboardsAll(){
+        for (String whiteboard : whiteboardToCommandsMap.keySet()){
+            String whiteboards = "Existing Whiteboards " + whiteboard;
+            for (BlockingQueue<String> commandQueue : commandQueues){
+                commandQueue.offer(whiteboards);
+            }
+        }
+        String message = "Done sending whiteboard names";
+        for (BlockingQueue<String> commandQueue : commandQueues){
+            commandQueue.offer(message);
+        }
+    }
+
+    /**
+     * Sends the names of the current Whiteboards on the server to one specified client
+     */
+    private void getExistingWhiteboardsOne(final int threadNum){
+        for (String whiteboard : whiteboardToCommandsMap.keySet()){
+            String whiteboards = "Existing Whiteboards " + whiteboard;
+            commandQueues.get(threadNum).add(whiteboards);
+        }
+        String message = "Done sending whiteboard names";
+        commandQueues.get(threadNum).add(message);
+    }
+
+    /**
+     * Sends out to all clients the names of the other clients working on the same Whiteboard
+     */
+    private void getSameUsersWhiteboard(){
+        // Updating whiteboardToClientsMap
+        whiteboardToClientsMap.clear();
+        for (String client : clientToWhiteboardMap.keySet()){
+            // If the whiteboardToClientsMap doesn't have the Whiteboard name
+            if (!whiteboardToClientsMap.containsKey(clientToWhiteboardMap.get(client))){
+                // Create a list of clients working on the same Whiteboard and add the current client to the list
+                ArrayList<String> currentClients = new ArrayList<String>(); 
+                currentClients.add(client); 
+                whiteboardToClientsMap.put(clientToWhiteboardMap.get(client), currentClients);    
+            } else{
+                // Add the current client to the list of clients working on the same Whiteboard (only if the client isn't already in the list)
+                if (!whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).contains(client)){
+                    whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).add(client); 
+                }
+            }
         }
 
-        // Should never get here--make sure to return in each of the valid cases above.
-        //        throw new UnsupportedOperationException();
+        // Go through all of the Whiteboards and send all collaborating clients the names of the other collaborators
+        for (String whiteboard : whiteboardToClientsMap.keySet()){
+            ArrayList<String> sameClients = whiteboardToClientsMap.get(whiteboard);
+            ArrayList<String> sameClientsCommands = new ArrayList<String>();
+
+            // Generates the String commands to denote collaborators
+            for (String client : sameClients){
+                String clientCommand = "sameClient " + client;
+                sameClientsCommands.add(clientCommand); 
+            }
+
+            // Send each collaborator that shares the Whiteboard the names of the other collaborators
+            for (String client : sameClients){
+                String sending = "Updating Clients";
+                commandQueues.get(clientToThreadNumMap.get(client)).add(sending);
+                for (String clientCommands : sameClientsCommands){
+                    commandQueues.get(clientToThreadNumMap.get(client)).add(clientCommands);
+                }
+                String doneSending = "Done sending client names";
+                commandQueues.get(clientToThreadNumMap.get(client)).add(doneSending);
+            }
+        }
     }
 
     /**
@@ -342,9 +344,7 @@ public class WhiteboardServer {
      * 
      */
     public static void main(String[] args) throws IOException {
-        // Command-line argument parsing is provided. Do not change this method.
-        int port = 4444; // default port
-
+        int port = 4444; // Default port
         Queue<String> arguments = new LinkedList<String>(Arrays.asList(args));
         try {
             while (!arguments.isEmpty()) {
@@ -374,7 +374,6 @@ public class WhiteboardServer {
             .println("usage: WhiteBoardServer [--port PORT]");
             return;
         }
-
         try {
             runWhiteboardServer(port);
         } catch (IOException e) {
@@ -385,8 +384,7 @@ public class WhiteboardServer {
     /**
      * Starts a WhiteboardServer running on the specified port.
      * 
-     * @param port
-     *            The network port on which the server should listen.
+     * @param port represents network port on which the server should listen.
      */
     public static void runWhiteboardServer(final int port) throws IOException {
         WhiteboardServer server = new WhiteboardServer(port);
