@@ -132,7 +132,7 @@ public class WhiteboardClient {
      * @param input message from server
      */
     private void handleResponse(String input) {
-        String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
+        String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(removeClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
                 + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Connection terminated)|"
                 + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
                 + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
@@ -171,6 +171,13 @@ public class WhiteboardClient {
                     //(erwin) added this in to update sidepanel
                     whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
+            }else if (tokens[0].equals("removeClient")){
+                if (usersInWhiteboard.contains(tokens[1])){
+                    usersInWhiteboard.remove(tokens[1]);
+                    //(erwin) added this in to update sidepanel
+                    whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
+                }
+                System.out.println(usersInWhiteboard);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
                 System.out.println(whiteboards.getExistingWhiteboards());

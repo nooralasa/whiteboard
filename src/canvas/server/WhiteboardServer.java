@@ -219,10 +219,12 @@ public class WhiteboardServer {
             } else if (tokens[0].equals("Disconnect")) {
                 //terminate connection //TODO: need to refine
                 System.err.println("Connection terminated");
-                commandQueues.get(threadNum).add("Connection terminated"); 
+                commandQueues.get(threadNum).add("Connection terminated");
                 //Remove client from clientTothreadNumMap and from clientToWhiteboardMap 
+                removeDisconnectedUser(tokens[1]);
                 clientToWhiteboardMap.remove(tokens[1]);
                 clientToThreadNumMap.remove(tokens[1]); 
+                
             } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
                 // Put the input in the Whiteboard commandlist
                 whiteboardToCommandsMap.get(tokens[0]).add(input);
@@ -326,6 +328,27 @@ public class WhiteboardServer {
                 }
                 String doneSending = "Done sending client names";
                 commandQueues.get(clientToThreadNumMap.get(client)).add(doneSending);
+            }
+        }
+    }
+    
+    /**
+     * Sends out to all clients the name of the client who disconnected and was working on the same Whiteboard
+     * 
+     * @param client the name of the client who disconnected
+     */
+    private void removeDisconnectedUser(String client){
+        // Updating whiteboardToClientsMap
+        whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).remove(client);
+        String clientCommand = "removeClient " + client;
+        
+        // Go through all of the Whiteboards and send all collaborating clients the names of the other collaborators
+        for (String whiteboard : whiteboardToClientsMap.keySet()){
+            ArrayList<String> sameClients = whiteboardToClientsMap.get(whiteboard);
+
+            // Send each collaborator that shares the Whiteboard the names of the other collaborators
+            for (String c : sameClients){
+                commandQueues.get(clientToThreadNumMap.get(c)).add(clientCommand);
             }
         }
     }
