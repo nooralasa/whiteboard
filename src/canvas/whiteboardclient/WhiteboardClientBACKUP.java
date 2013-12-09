@@ -207,7 +207,7 @@ public class WhiteboardClientBACKUP extends JPanel {
                     usersInWhiteboard.add(tokens[1]);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                sidePanel.updateWhiteboardsList(existingWhiteboards);
+                sidePanel.updateWhiteboardsList(existingWhiteboards,whiteboard);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 sidePanel.updateClientsList(usersInWhiteboard);
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
