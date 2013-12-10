@@ -25,23 +25,19 @@ import java.util.Queue;
  * whiteboards simultaneously over a network connection.
  */
 public class WhiteboardServer {
-    private final ServerSocket serverSocket;
     private final AtomicInteger threadID = new AtomicInteger(-1);
-    private final Map<String, String> clientToWhiteboardMap;
-    private final Map<String, ArrayList<String>> whiteboardToClientsMap;
-    private final Map<String, ArrayList<String>> whiteboardToCommandsMap;
-    private final Map<String, Integer> clientToThreadNumMap;
-    private final List<BlockingQueue<String>> commandQueues;
-    private final List<Boolean> outputThreadActive;
+    protected final Map<String, String> clientToWhiteboardMap;
+    protected final Map<String, ArrayList<String>> whiteboardToClientsMap;
+    protected final Map<String, ArrayList<String>> whiteboardToCommandsMap;
+    protected final Map<String, Integer> clientToThreadNumMap;
+    protected final List<BlockingQueue<String>> commandQueues;
+    protected final List<Boolean> outputThreadActive;
 
     /**
      * Creates a Whiteboard Server.
-     * @param port represents the listening port of the Whiteboard Server's socket
      * @throws IOException
      */
-    public WhiteboardServer(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
-
+    public WhiteboardServer() throws IOException {
         // Maps each client to the Whiteboard it is working on
         clientToWhiteboardMap = Collections.synchronizedMap(new HashMap<String, String>());
 
@@ -67,11 +63,13 @@ public class WhiteboardServer {
     /**
      * Run the Whiteboard Server, listening for client connections and handling them. Never
      * returns unless an exception is thrown.
-     * 
+     * @param port represents the listening port of the Whiteboard Server's socket
      * @throws IOException if the main server socket is broken (IOExceptions from
      *                     individual clients do *not* terminate serve())
      */
-    public void serve() throws IOException {
+    public void serve(int port) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(port);
+
         while (true) {
             // Block until a client connects
             final Socket socket = serverSocket.accept();
@@ -90,7 +88,7 @@ public class WhiteboardServer {
     /**
      * Creates 3 Boards for the Server to start with
      */
-    private void createBoards(){
+    protected void createBoards(){
         ArrayList<String> emptyCommandAndClientList = new ArrayList<String>();
         whiteboardToCommandsMap.put("Board1", emptyCommandAndClientList);
         whiteboardToCommandsMap.put("Board2", emptyCommandAndClientList);
@@ -197,7 +195,7 @@ public class WhiteboardServer {
      * @param input represents the text message from the client
      * @param threadNum represents the position of the client's blockingQueue in the commandQueues list
      */
-    private void handleRequest(final String input, final Integer threadNum) {
+    protected void handleRequest(final String input, final Integer threadNum) {
         String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
                 + "(Disconnect [^=]*)|(new username [^=]*)|(addBoard [^=]*)";
         // If the input is not defined in the regex
@@ -271,7 +269,7 @@ public class WhiteboardServer {
     /**
      * Sends the names of the current Whiteboards on the server to all clients
      */
-    private void getExistingWhiteboardsAll(){
+    protected void getExistingWhiteboardsAll(){
         for (String whiteboard : whiteboardToCommandsMap.keySet()){
             String whiteboards = "Existing Whiteboards " + whiteboard;
             for (BlockingQueue<String> commandQueue : commandQueues){
@@ -287,7 +285,7 @@ public class WhiteboardServer {
     /**
      * Sends the names of the current Whiteboards on the server to one specified client
      */
-    private void getExistingWhiteboardsOne(final int threadNum){
+    protected void getExistingWhiteboardsOne(final int threadNum){
         for (String whiteboard : whiteboardToCommandsMap.keySet()){
             String whiteboards = "Existing Whiteboards " + whiteboard;
             commandQueues.get(threadNum).offer(whiteboards);
@@ -299,7 +297,7 @@ public class WhiteboardServer {
     /**
      * Sends out to all clients the names of the other clients working on the same Whiteboard
      */
-    private void getSameUsersWhiteboard(){
+    protected void getSameUsersWhiteboard(){
         // Updating whiteboardToClientsMap
         whiteboardToClientsMap.clear();
         for (String client : clientToWhiteboardMap.keySet()){
@@ -346,7 +344,7 @@ public class WhiteboardServer {
      * 
      * @param client the name of the client who disconnected
      */
-    private void removeDisconnectedUser(String client, final int threadNum){
+    protected void removeDisconnectedUser(String client, final int threadNum){
         // Updating whiteboardToClientsMap
         whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).remove(client);
         String clientCommand = "removeClient " + client;
@@ -418,7 +416,7 @@ public class WhiteboardServer {
      * @param port represents network port on which the server should listen.
      */
     public static void runWhiteboardServer(final int port) throws IOException {
-        WhiteboardServer server = new WhiteboardServer(port);
-        server.serve();
+        WhiteboardServer server = new WhiteboardServer();
+        server.serve(port);
     }
 }
