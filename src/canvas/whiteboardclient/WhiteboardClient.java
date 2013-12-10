@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,13 +16,13 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+
 import canvas.WhiteboardGUI;
 
 /**
  * Whiteboard Client represents a client working on the Whiteboard.
  */
 public class WhiteboardClient {
-    private boolean inActive = true;
     private boolean outActive = true;
     private BufferedReader in;
     private PrintWriter out;
@@ -112,17 +113,17 @@ public class WhiteboardClient {
      *             if connection has an error or terminates unexpectedly
      */
     private void handleServerResponse(Socket socket) throws IOException {
-        System.out.println("ServerResponse");
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         try {
-            while(inActive) {
-                System.out.println("I'm in here");
+            while(true) {
                 for (String line = in.readLine(); line != null; line = in.readLine()) {
                     handleResponse(line);
-                    System.out.println("Server Response: " + line);
+                    //System.out.println("Server Response: " + line);
                 }
-            }
-        } finally {
+            }   
+        }catch (SocketException e) {
+            System.err.println("Input reader closed");
+        }finally {
         }
     }
 
@@ -240,10 +241,8 @@ public class WhiteboardClient {
                     String output = (String) outputCommandsQueue.take();
                     System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
                     out.println(output);
-                    if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect message
-                        System.out.println("Should be disconnected now");
+                    if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect messages
                         outputCommandsQueue.clear(); // Clears the outputCommandsQueue
-                        inActive = false;
                         outActive = false;
                         out.close();
                         in.close();
@@ -253,6 +252,7 @@ public class WhiteboardClient {
                 }
             }
         } finally {
+            System.out.println("Output thread completted");
         }
     }
 
