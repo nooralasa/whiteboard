@@ -32,7 +32,7 @@ public class WhiteboardServer {
     private final Map<String, ArrayList<String>> whiteboardToCommandsMap;
     private final Map<String, Integer> clientToThreadNumMap;
     private final List<BlockingQueue<String>> commandQueues;
-    private final L
+    private final List<Boolean> outputThreadActive;
 
     /**
      * Creates a Whiteboard Server.
@@ -56,6 +56,9 @@ public class WhiteboardServer {
 
         // Maps each client to its threadnum which corresponds to its Blocking Queue in the commandsQueue
         clientToThreadNumMap = Collections.synchronizedMap(new HashMap<String, Integer>());
+
+        // List of Booleans to keep output threads active
+        outputThreadActive = Collections.synchronizedList(new ArrayList<Boolean>());
 
         // Creates the Server's starting Whiteboards
         createBoards();
@@ -109,7 +112,7 @@ public class WhiteboardServer {
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    System.out.println("Input Client Thread with Thread " + threadNum + "done running.");
+                    System.out.println("Input Client Thread with Thread " + threadNum + " done running.");
                 }
             }
         });
@@ -119,13 +122,15 @@ public class WhiteboardServer {
             public void run() {
                 System.out.println("Starting Output Thread with Thread " + threadNum);
                 try {
+                    boolean outputThreadStatus = true;
+                    outputThreadActive.add(outputThreadStatus);
                     handleOutputs(socket, threadNum);
                 } catch (SocketException e){
                     System.err.println("Client socket closed for Thread " + threadNum.toString());
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    System.out.println("Output Thread with Thread " + threadNum + "done running.");
+                    System.out.println("Output Thread with Thread " + threadNum + " done running.");
                 }
             }
         });
@@ -144,7 +149,7 @@ public class WhiteboardServer {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         try {
             // Constantly poll the client's Blocking Queue in the Commands Queue
-            while (true){ 
+            while (outputThreadActive.get(threadNum)){ 
                 BlockingQueue<String> commandsQueue = commandQueues.get(threadNum);
                 while (commandsQueue.peek() != null){
                     String output = (String) commandsQueue.take();
@@ -172,7 +177,7 @@ public class WhiteboardServer {
                     socket.close();
                     String[] tokens = line.split(" ");
                     //Remove client from clientTothreadNumMap and from clientToWhiteboardMap 
-                    removeDisconnectedUser(tokens[1]);
+                    removeDisconnectedUser(tokens[1], threadNum);
                     clientToWhiteboardMap.remove(tokens[1]);
                     clientToThreadNumMap.remove(tokens[1]); 
                     break;
@@ -181,7 +186,7 @@ public class WhiteboardServer {
                 }
             }
         } catch (SocketException e){
-            System.err.println("Client socket closed for Thread " + threadNum.toString());
+            System.err.println("Input: Client socket closed for Thread " + threadNum.toString());
         } finally {
             System.err.println("Input Thread for Thread " + threadNum.toString() + " done");
         }
@@ -337,7 +342,7 @@ public class WhiteboardServer {
      * 
      * @param client the name of the client who disconnected
      */
-    private void removeDisconnectedUser(String client){
+    private void removeDisconnectedUser(String client, final int threadNum){
         // Updating whiteboardToClientsMap
         whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).remove(client);
         String clientCommand = "removeClient " + client;
@@ -351,6 +356,7 @@ public class WhiteboardServer {
                 commandQueues.get(clientToThreadNumMap.get(c)).add(clientCommand);
             }
         }
+        outputThreadActive.set(threadNum, false); // Makes the output thread finish
     }
 
     /**
