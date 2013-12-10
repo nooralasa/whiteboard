@@ -26,8 +26,6 @@ public class WhiteboardGUI extends JFrame {
     private final List<String> existingWhiteboards;
     public final BlockingQueue<String> outputCommandsQueue;
     private String currentWhiteboard;
-    private JFrame popupWhiteboard;
-
 
     /**
      * 
@@ -45,8 +43,6 @@ public class WhiteboardGUI extends JFrame {
         this.buttonPanel = new ButtonPanel(width, 50, this);
         this.sidePanel = new SidePanel(250, height, this);
         this.existingWhiteboards = Collections.synchronizedList(new ArrayList<String>());
-        this.popupWhiteboard =  new JFrame();
-        popupWhiteboard.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 
     /**
@@ -124,46 +120,20 @@ public class WhiteboardGUI extends JFrame {
      * Lets the user choose their whiteboard. Popups a Jframe that has a textfield to input the desired 
      */
     public void chooseWhiteboardPopup(){
-        // all the names of the existing whiteboards are in the list of strings existingWhiteboards
-        // should use a jcombo box or something to display the choices
-        // could maybe `have a textfield similar to the getusername one to choose own.
-        // MAKE SURE to set the selected whiteboard as this.whiteboard and then wipe the board
-        // for now needs to be fixed by erwin
-
-        //converts to an array
-        String[] whiteboardsInServerArray = new String[existingWhiteboards.size()];
-        for(int i = 0; i < existingWhiteboards.size(); i++){
-            whiteboardsInServerArray[i] = existingWhiteboards.get(i);
+        JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
+        Object[] possibilities = null;
+        String whiteboardNames = "Existing Whiteboards ";
+        for (String name : existingWhiteboards){
+            whiteboardNames += name + " ";
         }
-        WhiteboardListPopup p = new WhiteboardListPopup(300,300, whiteboardsInServerArray,this);
-        /*
-            Object[] possibilities = null;
-            String whiteboardNames = "Existing Whiteboards ";
-
-            whiteboardNames += "\n";   
-            String message = "Enter the name of an existing whiteboard or type in a new whiteboard name";
-            String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message, "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
-         */
-
-        //Lay out everything.
-        popupWhiteboard.setState(java.awt.Frame.NORMAL);
-        popupWhiteboard.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO: does this conflict with the other one later in the program
-        popupWhiteboard.add(p);
-        popupWhiteboard.pack();
-        popupWhiteboard.setVisible(true);
-
-    }
-
-    public void chooseWhiteboard(String desiredName){
-        popupWhiteboard.dispose();
-        this.updateTitle(desiredName);
-        this.currentWhiteboard = desiredName;
-
-
-        if (existingWhiteboards.contains(desiredName)){
-            outputCommandsQueue.offer(clientName + " selectBoard " + desiredName);
+        whiteboardNames += "\n";   
+        String message = "Enter the name of an existing whiteboard or type in a new whiteboard name";
+        String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message, "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+        this.updateTitle(desiredWhiteboardName);
+        if (existingWhiteboards.contains(desiredWhiteboardName)){
+            outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
         } else{
-            outputCommandsQueue.offer("addBoard " + desiredName);
+            outputCommandsQueue.offer("addBoard " + desiredWhiteboardName);
         }
     }
 

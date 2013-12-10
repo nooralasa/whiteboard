@@ -47,10 +47,6 @@ public class SidePanel extends JPanel {
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
         
-        /*
-         * Users in whiteboard displays the users in the whiteboard (not the whole server)
-         */
-        
         // Creates the Label for the Same Users in the Whiteboard
         usersInWhiteboardLabel = new JLabel();
         usersInWhiteboardLabel.setName("usersInWhiteboardLabel");
