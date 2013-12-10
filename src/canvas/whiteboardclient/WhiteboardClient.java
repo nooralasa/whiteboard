@@ -30,23 +30,34 @@ public class WhiteboardClient {
     public final BlockingQueue<String> outputCommandsQueue; //For communication with the server
     private final List<String> usersInWhiteboard;
     private WhiteboardGUI whiteboards; //The GUI representation of a Whiteboard
+    private int width;
+    private int height;
+    private String ipAddress;
+    private int portNumber;
 
     /**
      * Makes a WhiteboardClient
      * 
      * @param width width of the whiteboard in pixels
      * @param height height of the whiteboard in pixels
-     * @param ipAddress the ipAddress the Server is running on
-     * @param portNumber the port the Client uses to conect to the Server
+     * @param serverIPAddress the ipAddress the Server is running on
+     * @param port the port the Client uses to conect to the Server
      */
-    public WhiteboardClient(int width, int height, String ipAddress, int portNumber) {
+    public WhiteboardClient(final int clientWidth, final int clientHeight, final String serverIPAddress, final int port) {
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);     //MAX_INT doesn't work as an argument, thus a very large number is passed on
         usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
-        connectToServer(ipAddress, portNumber);
-        whiteboards = new WhiteboardGUI(width,height, outputCommandsQueue);  
-        outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
+        width = clientWidth;
+        height = clientHeight;
+        ipAddress = serverIPAddress;
+        portNumber = port;
     }
 
+    public void createGUI(){
+        whiteboards = new WhiteboardGUI(width,height, outputCommandsQueue);  
+        outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
+        createWhiteboard(whiteboards.clientName);
+    }
+    
     /**
      * Creates the Whiteboard Window and makes the Whiteboard.
      * @param whiteboard
@@ -63,7 +74,7 @@ public class WhiteboardClient {
      *             if the main server socket is broken (IOExceptions from
      *             individual clients do *not* terminate serve())
      */
-    public void connectToServer(String ipAddress, int portNumber){
+    public void connectToServer(){
         try {
             final Socket clientSocket = new Socket(ipAddress, portNumber);
             // start a new thread to handle the connection
@@ -116,7 +127,7 @@ public class WhiteboardClient {
             while(true) {
                 for (String line = in.readLine(); line != null; line = in.readLine()) {
                     handleResponse(line);
-                    System.out.println("Server Response: " + line);
+//                    System.out.println("Server Response: " + line);
                 }
             }   
         }catch (SocketException e) {
@@ -230,7 +241,7 @@ public class WhiteboardClient {
             while (outActive){ // constantly poll the commands queue 
                 while (outputCommandsQueue.peek() != null){
                     String output = (String) outputCommandsQueue.take();
-                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
+//                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
                     out.println(output);
                     if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect messages
                         outputCommandsQueue.clear(); // Clears the outputCommandsQueue
@@ -252,9 +263,10 @@ public class WhiteboardClient {
      * @param ipAddress Server IP Address
      * @param port Server Port
      */
-    public static void runWhiteboardClient(String ipAddress, int port){
-        WhiteboardClient client1 = new WhiteboardClient(800,600, ipAddress, port);
-        client1.createWhiteboard(client1.whiteboards.clientName);
+    public static void runWhiteboardClient(final String ipAddress, final int port, final int clientWidth, final int clientHeight){
+        WhiteboardClient client = new WhiteboardClient(clientWidth,clientHeight, ipAddress, port);
+        client.connectToServer();
+        client.createGUI();
     }
 
     /*
@@ -264,6 +276,8 @@ public class WhiteboardClient {
         // Command-line argument parsing is provided. Do not change this method.
         int port = 4444; // default port
         String ipAddress = "127.0.0.1"; // Localhost IP Address by default
+        int clientWidth = 800;
+        int clientHeight = 600;
         Queue<String> arguments = new LinkedList<String>(Arrays.asList(args));
         try {
             while ( !arguments.isEmpty()) {
@@ -293,6 +307,6 @@ public class WhiteboardClient {
             System.err.println("usage: Whiteboard Client [--ip ipAddress] [--port PORT]");
             return;
         }
-        runWhiteboardClient(ipAddress, port);
+        runWhiteboardClient(ipAddress, port, clientWidth, clientHeight);
     }
 }
