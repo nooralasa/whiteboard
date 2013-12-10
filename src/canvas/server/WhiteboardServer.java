@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,13 +26,13 @@ import java.util.Queue;
  */
 public class WhiteboardServer {
     private final ServerSocket serverSocket;
-    private final AtomicInteger numOfClients = new AtomicInteger(0);
     private final AtomicInteger threadID = new AtomicInteger(-1);
     private final Map<String, String> clientToWhiteboardMap;
     private final Map<String, ArrayList<String>> whiteboardToClientsMap;
     private final Map<String, ArrayList<String>> whiteboardToCommandsMap;
     private final Map<String, Integer> clientToThreadNumMap;
     private final List<BlockingQueue<String>> commandQueues;
+    private final L
 
     /**
      * Creates a Whiteboard Server.
@@ -71,7 +72,6 @@ public class WhiteboardServer {
         while (true) {
             // Block until a client connects
             final Socket socket = serverSocket.accept();
-            numOfClients.getAndIncrement();
             threadID.getAndIncrement();
 
             // Creates the blocking queue for each client and adds it to the commandQueues list
@@ -103,13 +103,13 @@ public class WhiteboardServer {
         // Thread to handle inputs from the client
         Thread inputThread = new Thread(new Runnable() {
             public void run() {
-                System.out.println("Starting Input Thread with Thread " + threadNum);
+                System.out.println("Starting Client Input Thread with Thread " + threadNum);
                 try {
                     handleClientInput(socket, threadNum);
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } finally {
+                    System.out.println("Input Client Thread with Thread " + threadNum + "done running.");
                 }
             }
         });
@@ -120,8 +120,12 @@ public class WhiteboardServer {
                 System.out.println("Starting Output Thread with Thread " + threadNum);
                 try {
                     handleOutputs(socket, threadNum);
+                } catch (SocketException e){
+                    System.err.println("Client socket closed for Thread " + threadNum.toString());
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
+                } finally {
+                    System.out.println("Output Thread with Thread " + threadNum + "done running.");
                 }
             }
         });
@@ -145,13 +149,6 @@ public class WhiteboardServer {
                 while (commandsQueue.peek() != null){
                     String output = (String) commandsQueue.take();
                     out.println(output);
-                    // When the disconnect message is received, terminate the connection.
-                    if (output.equals("Thank you!")) {
-                        numOfClients.getAndDecrement();
-                        out.close();
-                        socket.close();
-                        break;
-                    }
                 }
             }
         } finally {
@@ -170,11 +167,23 @@ public class WhiteboardServer {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
-                handleRequest(line, threadNum);
+                if (line.substring(0,10).equals("Disconnect")) { // If the server receives the disconnect message
+                    in.close();
+                    socket.close();
+                    String[] tokens = line.split(" ");
+                    //Remove client from clientTothreadNumMap and from clientToWhiteboardMap 
+                    removeDisconnectedUser(tokens[1]);
+                    clientToWhiteboardMap.remove(tokens[1]);
+                    clientToThreadNumMap.remove(tokens[1]); 
+                    break;
+                } else{
+                    handleRequest(line, threadNum);
+                }
             }
+        } catch (SocketException e){
+            System.err.println("Client socket closed for Thread " + threadNum.toString());
         } finally {
-            in.close();
-            socket.close();
+            System.err.println("Input Thread for Thread " + threadNum.toString() + " done");
         }
     }
 
@@ -216,15 +225,6 @@ public class WhiteboardServer {
                 }
                 // Send existing Whiteboard names to all users
                 getExistingWhiteboardsAll();
-            } else if (tokens[0].equals("Disconnect")) {
-                //terminate connection //TODO: need to refine
-                System.err.println("Connection terminated");
-                commandQueues.get(threadNum).add("Connection terminated");
-                //Remove client from clientTothreadNumMap and from clientToWhiteboardMap 
-                removeDisconnectedUser(tokens[1]);
-                clientToWhiteboardMap.remove(tokens[1]);
-                clientToThreadNumMap.remove(tokens[1]); 
-                
             } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))){
                 // Put the input in the Whiteboard commandlist
                 whiteboardToCommandsMap.get(tokens[0]).add(input);
@@ -331,7 +331,7 @@ public class WhiteboardServer {
             }
         }
     }
-    
+
     /**
      * Sends out to all clients the name of the client who disconnected and was working on the same Whiteboard
      * 
@@ -341,7 +341,7 @@ public class WhiteboardServer {
         // Updating whiteboardToClientsMap
         whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).remove(client);
         String clientCommand = "removeClient " + client;
-        
+
         // Go through all of the Whiteboards and send all collaborating clients the names of the other collaborators
         for (String whiteboard : whiteboardToClientsMap.keySet()){
             ArrayList<String> sameClients = whiteboardToClientsMap.get(whiteboard);

@@ -71,7 +71,6 @@ public class WhiteboardClient {
                 public void run() {
                     System.out.println("Starting Client Input Thread");
                     try {
-                        System.out.println("I'm in ConnectToServer");
                         handleServerResponse(clientSocket);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -86,7 +85,6 @@ public class WhiteboardClient {
                     try {
                         handleOutputs(clientSocket);
                     } catch (IOException | InterruptedException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
@@ -252,7 +250,7 @@ public class WhiteboardClient {
                 }
             }
         } finally {
-            System.out.println("Output thread completted");
+            System.out.println("Output thread done");
         }
     }
 
