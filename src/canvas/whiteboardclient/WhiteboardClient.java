@@ -57,7 +57,7 @@ public class WhiteboardClient {
         outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
         createWhiteboard(whiteboards.clientName);
     }
-    
+
     /**
      * Creates the Whiteboard Window and makes the Whiteboard.
      * @param whiteboard
@@ -127,7 +127,7 @@ public class WhiteboardClient {
             while(true) {
                 for (String line = in.readLine(); line != null; line = in.readLine()) {
                     handleResponse(line);
-//                    System.out.println("Server Response: " + line);
+                    //                    System.out.println("Server Response: " + line);
                 }
             }   
         }catch (SocketException e) {
@@ -142,11 +142,13 @@ public class WhiteboardClient {
      * @param input message from server
      */
     private void handleResponse(String input) {
-        String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(removeClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
-                + "|(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
-                + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
+        String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(removeClient [^=]*)|(Username already taken. Please select a new username.)|"
+                + "(Whiteboard already exists.)|(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|"
+                + "([^=]* on board [^=]*)|(Updating Clients)|(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|"
+                + "([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)|(Not in Server Regex)|"
+                + "(In Server Regex, no action)";
         if (!input.matches(regex)) {
-            System.err.println("Not in Regex");
+            System.err.println("Not in Client Regex");
             System.err.println(input);
             return ;
         }
@@ -173,13 +175,13 @@ public class WhiteboardClient {
                 usersInWhiteboard.clear();
                 //(erwin) added this in to update sidepanel
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
-            }else if (tokens[0].equals("sameClient")){
+            } else if (tokens[0].equals("sameClient")){
                 if (!usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.add(tokens[1]);
                     //(erwin) added this in to update sidepanel
                     whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
-            }else if (tokens[0].equals("removeClient")){
+            } else if (tokens[0].equals("removeClient")){
                 if (usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.remove(tokens[1]);
                     //(erwin) added this in to update sidepanel
@@ -189,7 +191,7 @@ public class WhiteboardClient {
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
-            }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
+            } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
                 //(erwin)added this to update when new board added
@@ -212,13 +214,13 @@ public class WhiteboardClient {
                 int y2 = Integer.parseInt(tokens[5]);
                 int newStrokeSize = Integer.parseInt(tokens[6]);
                 whiteboards.getCanvas().commandErase(x1, y1, x2, y2, newStrokeSize);            
-            } else {
-                System.err.println("Invalid Input Tokens > 1");
-                System.err.println(input);
-                return ;
-            }
+            } else if (tokens[2].equals("Server") && (tokens[3].equals("Regex"))){
+                System.err.println("Command " + input); // Don't need to do anything      
+            } else if (tokens[0].equals("In") && (tokens[1].equals("Server"))){
+                System.err.println("Command " + input); // Don't need to do anything      
+            } 
         } else {
-            System.err.println("Invalid Input Tokens < 1");
+            System.err.println("In Server Regex, no action");
             System.err.println(input);
             return ;
         }
@@ -241,7 +243,7 @@ public class WhiteboardClient {
             while (outActive){ // constantly poll the commands queue 
                 while (outputCommandsQueue.peek() != null){
                     String output = (String) outputCommandsQueue.take();
-//                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
+                    //                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
                     out.println(output);
                     if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect messages
                         outputCommandsQueue.clear(); // Clears the outputCommandsQueue

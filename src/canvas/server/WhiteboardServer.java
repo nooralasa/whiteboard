@@ -202,7 +202,9 @@ public class WhiteboardServer {
                 + "(Disconnect [^=]*)|(new username [^=]*)|(addBoard [^=]*)";
         // If the input is not defined in the regex
         if (!input.matches(regex)) {
-            System.err.println("Input not in REGEX");
+            System.err.println("Not in Server Regex");
+            System.err.println(input);
+            commandQueues.get(threadNum).offer("Not in Server Regex");
             return ;
         }
         String[] tokens = input.split(" ");
@@ -260,7 +262,9 @@ public class WhiteboardServer {
                 }
             }
         } else {
-            System.err.println("Input in Regex but no specified action.");
+            System.err.println("In Server Regex, no action");
+            System.err.println(input);
+            commandQueues.get(threadNum).offer("In Server Regex, no action");
         }
     }
 
