@@ -276,12 +276,12 @@ public class WhiteboardServer {
                         commandQueues.get(threadNum).offer(command);
                     }
                 }
+            } else {
+                System.err.println("In Server Regex, no action");
+                System.err.println(input);
+                commandQueues.get(threadNum).offer("In Server Regex, no action");
             }
-        } else {
-            System.err.println("In Server Regex, no action");
-            System.err.println(input);
-            commandQueues.get(threadNum).offer("In Server Regex, no action");
-        }
+        } 
     }
 
     /**
