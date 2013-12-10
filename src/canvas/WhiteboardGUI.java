@@ -108,9 +108,8 @@ public class WhiteboardGUI extends JFrame {
         String desiredClientName = (String) JOptionPane.showInputDialog(popup, message + "Input your desired username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "username");
 
         while (desiredClientName.equals("") || desiredClientName.contains(" ")|| desiredClientName.equals(null)) {
-            String noSpaceMessage = "Please enter a username with no spaces composed of at least 1 alphanumeric character \n";
+            String noSpaceMessage = "Please enter a username with no spaces composed of at least 1 character \n";
             desiredClientName = (String) JOptionPane.showInputDialog(popup, noSpaceMessage + "Please input a valid username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
-
         }
         this.clientName = desiredClientName;
         return "new username " + desiredClientName;
@@ -122,13 +121,20 @@ public class WhiteboardGUI extends JFrame {
     public void chooseWhiteboardPopup(){
         JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
         Object[] possibilities = null;
-        String whiteboardNames = "Existing Whiteboards ";
+        String whiteboardNames = "Existing Whiteboards: ";
         for (String name : existingWhiteboards){
             whiteboardNames += name + " ";
         }
         whiteboardNames += "\n";   
         String message = "Enter the name of an existing whiteboard or type in a new whiteboard name";
         String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message, "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+        
+        while (desiredWhiteboardName.equals("") || desiredWhiteboardName.contains(" ")|| desiredWhiteboardName.equals(null)) {
+            String noSpaceMessage = "Please enter a whiteboard name with no spaces composed of at least 1 character \n";
+            desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message + "\n" + noSpaceMessage + "Please input a valid whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+        }
+        
+        
         this.updateTitle(desiredWhiteboardName);
         if (existingWhiteboards.contains(desiredWhiteboardName)){
             outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);

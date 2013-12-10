@@ -52,7 +52,7 @@ public class WhiteboardListPopup extends JPanel{
                 String text = addWhiteboardText.getText();
                 if(text != null && !(text.contains(" ") && !(text.equals("")))){
                     desiredWhiteboardName = text;
-                    whiteboard.chooseWhiteboard(desiredWhiteboardName);
+                    whiteboard.chooseNewWhiteboard(desiredWhiteboardName);
                 }
             }
         });
@@ -65,7 +65,7 @@ public class WhiteboardListPopup extends JPanel{
                 try {
                     addWhiteboardText.setText(desiredWhiteboardPick);
                     desiredWhiteboardName = desiredWhiteboardPick;
-                    whiteboard.chooseWhiteboard(desiredWhiteboardName);
+                    whiteboard.chooseNewWhiteboard(desiredWhiteboardName);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }

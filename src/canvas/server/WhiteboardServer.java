@@ -93,6 +93,24 @@ public class WhiteboardServer {
         whiteboardToCommandsMap.put("Board1", emptyCommandAndClientList);
         whiteboardToCommandsMap.put("Board2", emptyCommandAndClientList);
         whiteboardToCommandsMap.put("Board3", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board4", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board5", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board6", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board7", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board8", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board9", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board10", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board11", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board12", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board13", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board14", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board15", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board16", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board17", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board18", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board19", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board20", emptyCommandAndClientList);
+//        whiteboardToCommandsMap.put("Board21", emptyCommandAndClientList);
     }
 
     /**
