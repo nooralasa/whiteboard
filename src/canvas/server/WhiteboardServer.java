@@ -214,19 +214,19 @@ public class WhiteboardServer {
                     clientToThreadNumMap.put(tokens[2], threadNum);
                     // Send existing Whiteboard names only to the user that just joined
                     getExistingWhiteboardsOne(threadNum);
-                    commandQueues.get(threadNum).add("Select a whiteboard");
+                    commandQueues.get(threadNum).offer("Select a whiteboard");
                 } else{ // If the username already exists in the server
-                    commandQueues.get(threadNum).add("Username already taken. Please select a new username.");
+                    commandQueues.get(threadNum).offer("Username already taken. Please select a new username.");
                 }
             } else if (tokens[0].equals("addBoard")){
                 if (whiteboardToCommandsMap.containsKey(tokens[1])){
                     // If the Whiteboard already exists in the server
-                    commandQueues.get(threadNum).add("Whiteboard already exists.");
+                    commandQueues.get(threadNum).offer("Whiteboard already exists.");
                 } else{
                     // Adds a new Whiteboard to the Server
                     ArrayList<String> commandList = new ArrayList<String>();
                     whiteboardToCommandsMap.put(tokens[1], commandList);
-                    commandQueues.get(threadNum).add("Board " + tokens[1] + " added");
+                    commandQueues.get(threadNum).offer("Board " + tokens[1] + " added");
                 }
                 // Send existing Whiteboard names to all users
                 getExistingWhiteboardsAll();
@@ -236,26 +236,26 @@ public class WhiteboardServer {
                 // Putting commands into all collaborator queues
                 for (String keys : clientToWhiteboardMap.keySet()){
                     if (clientToWhiteboardMap.get(keys).equals(tokens[0])){
-                        commandQueues.get(clientToThreadNumMap.get(keys)).add(input);
+                        commandQueues.get(clientToThreadNumMap.get(keys)).offer(input);
                     }
                 }
             } else if (tokens[1].equals("selectBoard")) {
                 // If the client doesn't exist
                 if (!clientToWhiteboardMap.containsKey(tokens[0])){
-                    commandQueues.get(threadNum).add("Username does not exist.");
+                    commandQueues.get(threadNum).offer("Username does not exist.");
                     // If the whiteboard doesn't exist
                 } else if (!whiteboardToCommandsMap.containsKey(tokens[2])){
-                    commandQueues.get(threadNum).add("Whiteboard does not exist. Select a different board or make a board.");
+                    commandQueues.get(threadNum).offer("Whiteboard does not exist. Select a different board or make a board.");
                 } else{
                     // Map the client to its Whiteboard
                     clientToWhiteboardMap.put(tokens[0], tokens[2]);
                     // Update all clients of the collaborator names
                     getSameUsersWhiteboard();
-                    commandQueues.get(threadNum).add(tokens[0] + " on board " + tokens[2]); 
+                    commandQueues.get(threadNum).offer(tokens[0] + " on board " + tokens[2]); 
                     System.out.println(tokens[0] + " on board " + tokens[2]);
                     // Send Whiteboard history of commands to the client
                     for (String command : whiteboardToCommandsMap.get(tokens[2])){
-                        commandQueues.get(threadNum).add(command);
+                        commandQueues.get(threadNum).offer(command);
                     }
                 }
             }
@@ -286,10 +286,10 @@ public class WhiteboardServer {
     private void getExistingWhiteboardsOne(final int threadNum){
         for (String whiteboard : whiteboardToCommandsMap.keySet()){
             String whiteboards = "Existing Whiteboards " + whiteboard;
-            commandQueues.get(threadNum).add(whiteboards);
+            commandQueues.get(threadNum).offer(whiteboards);
         }
         String message = "Done sending whiteboard names";
-        commandQueues.get(threadNum).add(message);
+        commandQueues.get(threadNum).offer(message);
     }
 
     /**
@@ -327,12 +327,12 @@ public class WhiteboardServer {
             // Send each collaborator that shares the Whiteboard the names of the other collaborators
             for (String client : sameClients){
                 String sending = "Updating Clients";
-                commandQueues.get(clientToThreadNumMap.get(client)).add(sending);
+                commandQueues.get(clientToThreadNumMap.get(client)).offer(sending);
                 for (String clientCommands : sameClientsCommands){
-                    commandQueues.get(clientToThreadNumMap.get(client)).add(clientCommands);
+                    commandQueues.get(clientToThreadNumMap.get(client)).offer(clientCommands);
                 }
                 String doneSending = "Done sending client names";
-                commandQueues.get(clientToThreadNumMap.get(client)).add(doneSending);
+                commandQueues.get(clientToThreadNumMap.get(client)).offer(doneSending);
             }
         }
     }
@@ -353,7 +353,7 @@ public class WhiteboardServer {
 
             // Send each collaborator that shares the Whiteboard the names of the other collaborators
             for (String c : sameClients){
-                commandQueues.get(clientToThreadNumMap.get(c)).add(clientCommand);
+                commandQueues.get(clientToThreadNumMap.get(c)).offer(clientCommand);
             }
         }
         outputThreadActive.set(threadNum, false); // Makes the output thread finish
