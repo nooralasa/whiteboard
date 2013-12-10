@@ -168,8 +168,6 @@ public class WhiteboardClient {
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
-                    //(erwin) added this in to update sidepanel
-                    whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
                 }
             } else if (tokens[0].equals("Updating") && tokens[1].equals("Clients")){
                 usersInWhiteboard.clear();
@@ -195,7 +193,6 @@ public class WhiteboardClient {
                 whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
                 //(erwin)added this to update when new board added
-                whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
                 whiteboards.updateTitle(whiteboardName);
             } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("draw"))){
                 int x1 = Integer.parseInt(tokens[2]);
