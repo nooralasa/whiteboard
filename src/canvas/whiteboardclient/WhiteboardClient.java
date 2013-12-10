@@ -132,7 +132,7 @@ public class WhiteboardClient {
      */
     private void handleResponse(String input) {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(removeClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
-                + "|(Connection terminated)|(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
+                + "|(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
                 + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
         if (!input.matches(regex)) {
             System.err.println("Not in Regex");
@@ -175,7 +175,6 @@ public class WhiteboardClient {
                     whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                //TODO: Look into the error here
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);

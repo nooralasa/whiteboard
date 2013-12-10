@@ -38,7 +38,7 @@ public class WhiteboardGUI extends JFrame {
      * @param height height in pixels
      * @param outputCommandsQueue
      */
-    
+
     public WhiteboardGUI(int width, int height, BlockingQueue<String> outputCommandsQueue) {
         this.outputCommandsQueue = outputCommandsQueue;
         this.canvas = new Canvas(width,height, outputCommandsQueue);
@@ -48,14 +48,14 @@ public class WhiteboardGUI extends JFrame {
         this.popupWhiteboard =  new JFrame();
         popupWhiteboard.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
-    
+
     /**
      * Updates the title of the JFrame GUI
      */
     public void updateTitle(String currentBoard) {
         this.setTitle(clientName + " working on " + currentBoard);
     }
-    
+
     /**
      * Creates a new window displaying the GUI - canvas, buttonPanel,sidePanel,etc
      */
@@ -72,7 +72,7 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Getter method for existingWhiteboards
      */
-    
+
     public List<String> getExistingWhiteboards() {
         return existingWhiteboards;
     }
@@ -87,11 +87,11 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Getter method for buttonPanel
      */
-    
+
     public ButtonPanel getButtonPanel(){
         return buttonPanel;
     }
-    
+
     /**
      * Getter method for Canvas
      */
@@ -104,7 +104,7 @@ public class WhiteboardGUI extends JFrame {
      * CANNOT contain spaces or just be an empty string
      * @param String message represents the special message to attach depending on the situation
      */
-    
+
     public String getUsername(String message){
         final JFrame popup = new JFrame(); // Popup asking for Username
         Object[] possibilities = null;
@@ -130,41 +130,41 @@ public class WhiteboardGUI extends JFrame {
         // MAKE SURE to set the selected whiteboard as this.whiteboard and then wipe the board
         // for now needs to be fixed by erwin
 
-           //converts to an array
-           String[] whiteboardsInServerArray = new String[existingWhiteboards.size()];
-           for(int i = 0; i < existingWhiteboards.size(); i++){
-               whiteboardsInServerArray[i] = existingWhiteboards.get(i);
-           }
-           WhiteboardListPopup p = new WhiteboardListPopup(300,300, whiteboardsInServerArray,this);
-           /*
+        //converts to an array
+        String[] whiteboardsInServerArray = new String[existingWhiteboards.size()];
+        for(int i = 0; i < existingWhiteboards.size(); i++){
+            whiteboardsInServerArray[i] = existingWhiteboards.get(i);
+        }
+        WhiteboardListPopup p = new WhiteboardListPopup(300,300, whiteboardsInServerArray,this);
+        /*
             Object[] possibilities = null;
             String whiteboardNames = "Existing Whiteboards ";
-    
+
             whiteboardNames += "\n";   
             String message = "Enter the name of an existing whiteboard or type in a new whiteboard name";
             String desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message, "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
-            */
-           
-           //Lay out everything.
-           popupWhiteboard.setState(java.awt.Frame.NORMAL);
-           popupWhiteboard.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO: does this conflict with the other one later in the program
-           popupWhiteboard.add(p);
-           popupWhiteboard.pack();
-           popupWhiteboard.setVisible(true);
+         */
+
+        //Lay out everything.
+        popupWhiteboard.setState(java.awt.Frame.NORMAL);
+        popupWhiteboard.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO: does this conflict with the other one later in the program
+        popupWhiteboard.add(p);
+        popupWhiteboard.pack();
+        popupWhiteboard.setVisible(true);
 
     }
-    
+
     public void chooseWhiteboard(String desiredName){
         popupWhiteboard.dispose();
         this.updateTitle(desiredName);
         this.currentWhiteboard = desiredName;
-     
-         
-         if (existingWhiteboards.contains(desiredName)){
-             outputCommandsQueue.offer(clientName + " selectBoard " + desiredName);
-         } else{
-             outputCommandsQueue.offer("addBoard " + desiredName);
-         }
+
+
+        if (existingWhiteboards.contains(desiredName)){
+            outputCommandsQueue.offer(clientName + " selectBoard " + desiredName);
+        } else{
+            outputCommandsQueue.offer("addBoard " + desiredName);
+        }
     }
 
     /**
@@ -183,8 +183,18 @@ public class WhiteboardGUI extends JFrame {
      */
     public void helpBox(){
         //default title and icon
-        JOptionPane.showMessageDialog(this,
-                "I'm guessing you need some help. Too bad.", "Help Message",
+        String helpMessage = "Collaborative Whiteboard Instructions \n\nDrawing and Erasing \n\n";
+        helpMessage += "To draw, simple click and draw your mouse cursor across the screen. \nDo the same for erasing. \n";
+        helpMessage += "You can view the state of the pen at the bottom of the interface.\n";
+        helpMessage += "To change the color of the pen, click the color button and select the desired color from the color palette.\n";
+        helpMessage += "To change the stroke size of the pen, drag the slider on the bottom of the interface to adjust the stroke size.\n\n";
+        helpMessage += "Changing Whiteboards\n\n";
+        helpMessage += "Select the desired whiteboard you wish to switch to in the list on the right denoted by Whiteboards in Server \nand click the Switch Whiteboards button.\n";
+        helpMessage += "You can view the other users working on the same whiteboard as you in the list labeled Users in Whiteboard.\n";
+        helpMessage += "You can logoff by clicking the X in the top left hand corner of the interface (right hand corner if you are using a PC).\n\n";
+        helpMessage += "We hope you enjoy using the Collaborative Whiteboard.\n\n";
+        helpMessage += "Developed by Erwin, Noor, and Vincent.";
+        JOptionPane.showMessageDialog(this, helpMessage, "Help",
                 JOptionPane.WARNING_MESSAGE);
     }
 
