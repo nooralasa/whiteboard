@@ -16,6 +16,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+/**
+ * SidePanel represents the side panel in the Collaborative Whiteboards GUI.
+ * The SidePanel includes a view of the users on each board and the available whiteboards.
+ */
 public class SidePanel extends JPanel {
     private JScrollPane usersInWhiteboard;
     private JLabel usersInWhiteboardLabel;

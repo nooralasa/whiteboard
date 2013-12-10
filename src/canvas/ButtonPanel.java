@@ -10,14 +10,16 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.JToggleButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import canvas.Canvas;
 import canvas.WhiteboardGUI;
-import canvas.whiteboardclient.WhiteboardClientBACKUP;
 
+/**
+ * ButtonPanel represents the buttons panel in the Collaborative Whiteboards GUI.
+ * It supports the GUI for accessing the toolkit provided for the clients to make changes  to the Canvas.
+ */
 public class ButtonPanel extends JPanel {
     private JButton drawButton;
     private JButton helpButton;

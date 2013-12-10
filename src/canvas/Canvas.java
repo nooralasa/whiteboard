@@ -9,17 +9,15 @@ import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 
-import canvas.whiteboardclient.WhiteboardClientBACKUP;
-import canvas.whiteboardclient.WhiteboardClient;
-
-
+/**
+ * Canvas represents a drawing surface that allows the user to draw
+ * on it freehand, with the mouse.
+ */
 public class Canvas extends JPanel{
     //private WhiteboardClient1 client;
     // image where the user's drawing is stored

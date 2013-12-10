@@ -116,7 +116,7 @@ public class WhiteboardClient {
             while(true) {
                 for (String line = in.readLine(); line != null; line = in.readLine()) {
                     handleResponse(line);
-                    //System.out.println("Server Response: " + line);
+                    System.out.println("Server Response: " + line);
                 }
             }   
         }catch (SocketException e) {
@@ -132,11 +132,9 @@ public class WhiteboardClient {
      */
     private void handleResponse(String input) {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(removeClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
-                + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Connection terminated)|"
-                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
+                + "|(Connection terminated)|(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
                 + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
         if (!input.matches(regex)) {
-            // invalid input
             System.err.println("Not in Regex");
             System.err.println(input);
             return ;
@@ -176,10 +174,9 @@ public class WhiteboardClient {
                     //(erwin) added this in to update sidepanel
                     whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
-                System.out.println(usersInWhiteboard);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
+                //TODO: Look into the error here
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
-                System.out.println(whiteboards.getExistingWhiteboards());
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
@@ -188,9 +185,6 @@ public class WhiteboardClient {
                 //(erwin)added this to update when new board added
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
                 whiteboards.updateTitle(whiteboardName);
-                //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
-            } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
-                whiteboards.helpBox();
             } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("draw"))){
                 int x1 = Integer.parseInt(tokens[2]);
                 int y1 = Integer.parseInt(tokens[3]);
@@ -234,7 +228,7 @@ public class WhiteboardClient {
     private void handleOutputs(final Socket socket) throws IOException, InterruptedException {
         out = new PrintWriter(socket.getOutputStream(), true);
         try {
-            while (outActive){ // constantly poll the commands queue //TODO: check with TA what to do about this since when the socket disconnects will still be in the while loop
+            while (outActive){ // constantly poll the commands queue 
                 while (outputCommandsQueue.peek() != null){
                     String output = (String) outputCommandsQueue.take();
                     System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
