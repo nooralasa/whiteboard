@@ -1,4 +1,4 @@
-package canvas;
+package client;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -30,7 +30,7 @@ public class SidePanel extends JPanel {
     private JList<String> usersInWhiteboardList;
     private JList<String> whiteboardsInServerList;
     private JButton selectWhiteboard;
-    private String selectedWhiteboard;
+    protected String selectedWhiteboard;
 
     /**
      * Side panel for the GUI containing the usersInWhiteboard & whiteboards in server JList
@@ -61,7 +61,7 @@ public class SidePanel extends JPanel {
 
         // Creates the ScrollPane for the Same Users in the Whiteboard
         usersInWhiteboard = new JScrollPane(usersInWhiteboardList);
-        usersInWhiteboard.setPreferredSize(new Dimension(250, 80)); //TODO: should be set from height and width
+        usersInWhiteboard.setPreferredSize(new Dimension(250, 80));
 
         // Creates the Label for the Whiteboards on the Server
         whiteboardsInServerLabel = new JLabel();
@@ -72,12 +72,7 @@ public class SidePanel extends JPanel {
 
         whiteboardsInServerList = new JList<String>(whiteboardsInServerListModel);
         whiteboardsInServerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-
-
         whiteboardsInServerList.setLayoutOrientation(JList.VERTICAL);
-        
-        //sets selected whiteboard to current whiteboard (see updateWhiteboardList())
-
 
         // Action Listener for when a whiteboard is selected in the JList
         whiteboardsInServerList.addListSelectionListener(new ListSelectionListener() {
@@ -91,7 +86,7 @@ public class SidePanel extends JPanel {
         whiteboardsInServer = new JScrollPane(whiteboardsInServerList);
         //sets the scrollpane index to the first index - current whiteboard 
 
-        whiteboardsInServer.setPreferredSize(new Dimension(250, 80));//TODO: should be set from height and width
+        whiteboardsInServer.setPreferredSize(new Dimension(250, 80));
 
         // Creates the Button to Switch to a New Whiteboard
         selectWhiteboard = new JButton();
@@ -135,7 +130,7 @@ public class SidePanel extends JPanel {
      */
     public void updateWhiteboardsList(List<String> whiteboards, String currentWhiteboard){
         whiteboardsInServerListModel.removeAllElements();
-        if(!(selectedWhiteboard != null)){
+        if (!(selectedWhiteboard != null)){
             selectedWhiteboard = currentWhiteboard;
         }
         for (String whiteboard : whiteboards){

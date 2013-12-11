@@ -1,4 +1,4 @@
-package canvas;
+package client;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -9,10 +9,12 @@ import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
+
 
 /**
  * Canvas represents a drawing surface that allows the user to draw
@@ -21,12 +23,12 @@ import javax.swing.JPanel;
 public class Canvas extends JPanel{
     // Image storing the whiteboard
     private Image drawingBuffer;
-    public boolean drawMode;
+    protected boolean drawMode;
     private int strokeSize;
     private final JColorChooser tcc = new JColorChooser(Color.BLACK);
     private final JColorChooser serverTcc = new JColorChooser(Color.BLACK);
-    public String whiteboardName;
-    public final BlockingQueue<String> outputCommandsQueue;
+    protected String whiteboardName = "Board1";
+    protected final BlockingQueue<String> outputCommandsQueue;
     private int width;
     private int height;
 
@@ -42,17 +44,14 @@ public class Canvas extends JPanel{
         addDrawingController();
         drawMode = true;
         outputCommandsQueue = queue;
+        checkRep();
     }
-    
-    public JColorChooser getTcc() {
-        return this.tcc;
-    }
-    
+
     /**
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
-    public void paintComponent(Graphics g) {
+    protected void paintComponent(Graphics g) {
         // If this is the first time paintComponent() is being called,
         // make our drawing buffer.
         if (drawingBuffer == null) {
@@ -60,16 +59,30 @@ public class Canvas extends JPanel{
         }
         // Copy the drawing buffer to the screen.
         g.drawImage(drawingBuffer, 0, 0, null);
+        checkRep();
     }
 
     /*
-     * Make the drawing buffer and draw some starting content for it.
+     * Make the drawing buffer.
      */
     private void makeDrawingBuffer() {
         drawingBuffer = createImage(getWidth(), getHeight());
         fillWithWhite();
     }
 
+    /**
+     * Returns the tcc.
+     * @return
+     */
+    protected JColorChooser getTcc(){
+        return tcc;
+    }
+    
+    
+    protected void setWhiteboardName(String newName){
+        whiteboardName = newName;
+    }
+    
     /*
      * Make the drawing buffer entirely white.
      */
@@ -82,27 +95,22 @@ public class Canvas extends JPanel{
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
-    }
-
-    /**
-     * Makes the board all white.
-     */
-    private void eraseBoard(){
-        fillWithWhite();
+        checkRep();
     }
 
     /*
      * Draw line/stroke segment size
      */
-    public void setStrokeState(int value) {
+    protected void setStrokeState(int value) {
         this.strokeSize = value;
+        checkRep();
     }
 
     /*
      * Draw a line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
-    public void drawLineSegment(int x1, int y1, int x2, int y2) {
+    protected void drawLineSegment(int x1, int y1, int x2, int y2) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
             System.out.println("make a drawing buffer");
@@ -123,15 +131,16 @@ public class Canvas extends JPanel{
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
         String drawCommand = whiteboardName + " draw " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize + " " + red + " " + green + " " + blue;
-        
+
         outputCommandsQueue.offer(drawCommand);
+        checkRep();
     }
 
     /*
      * Draw a white line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
-    public void eraseLineSegment(int x1, int y1, int x2, int y2) {
+    protected void eraseLineSegment(int x1, int y1, int x2, int y2) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
         }
@@ -145,14 +154,15 @@ public class Canvas extends JPanel{
         this.repaint();
         String eraseCommand = whiteboardName + " " + "erase" +  " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize;
         outputCommandsQueue.offer(eraseCommand);
+        checkRep();
     }
-    
+
     /*
      * Draws a line segment between two points (x1,y1) and (x2,y2) 
      * with a specified stroke size and color (in RGB), specified 
      * in pixels relative to the upper left corner of the drawing buffer
      */
-    public void commandDraw(int x1, int y1, int x2, int y2, int currentStrokeSize, String red, String green, String blue) {
+    protected void commandDraw(int x1, int y1, int x2, int y2, int currentStrokeSize, String red, String green, String blue) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
         }
@@ -172,13 +182,14 @@ public class Canvas extends JPanel{
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
+        checkRep();
     }
-    
+
     /*
      * Draw a white line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
-    public void commandErase(int x1, int y1, int x2, int y2, int newStroke) {
+    protected void commandErase(int x1, int y1, int x2, int y2, int newStroke) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
         }
@@ -190,6 +201,7 @@ public class Canvas extends JPanel{
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
+        checkRep();
     }
 
     /*
@@ -244,5 +256,42 @@ public class Canvas extends JPanel{
         public void mouseReleased(MouseEvent e) { }
         public void mouseEntered(MouseEvent e) { }
         public void mouseExited(MouseEvent e) { }
+    }
+
+    /**
+     * Checks that the rep invariant is maintained:
+     *      drawMode is true or false
+     *      height is greater than 0
+     *      width is greater than 0
+     *      strokeSize is greater than or equal to 0
+     *      tcc is not null
+     *      tcc has valid red, green and blue values
+     *      serverTcc is not null
+     *      serverTcc has valid red, green and blue values
+     *      whiteboard name is not null
+     *      whiteboard name is not an empty string
+     *      whiteboard name does not contain any spaces
+     *      outputCommandsQueue is not null
+     *      outputCommandsQueue length is 0 or more
+     */
+    private void checkRep(){
+        assert (drawMode || !drawMode);
+        assert (height > 0);
+        assert (width > 0);
+        assert (strokeSize >= 0);
+        assert (tcc != null);
+        assert ((tcc.getColor().getRed() >= 0) && (tcc.getColor().getRed() <= 255));
+        assert ((tcc.getColor().getGreen() >= 0) && (tcc.getColor().getGreen() <= 255));
+        assert ((tcc.getColor().getBlue() >= 0) && (tcc.getColor().getBlue() <= 255));
+        assert (tcc == serverTcc);
+        assert (serverTcc != null);
+        assert ((serverTcc.getColor().getRed() >= 0) && (serverTcc.getColor().getRed() <= 255));
+        assert ((serverTcc.getColor().getGreen() >= 0) && (serverTcc.getColor().getGreen() <= 255));
+        assert ((serverTcc.getColor().getBlue() >= 0) && (serverTcc.getColor().getBlue() <= 255));
+        assert (whiteboardName != null);
+        assert (!whiteboardName.equals(""));
+        assert (!whiteboardName.contains(" "));
+        assert (outputCommandsQueue != null);
+        assert (outputCommandsQueue.size() > -1);
     }
 }

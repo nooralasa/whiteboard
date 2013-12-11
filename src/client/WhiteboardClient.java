@@ -1,4 +1,4 @@
-package canvas.whiteboardclient;
+package client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,8 +17,6 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import canvas.WhiteboardGUI;
-
 /**
  * Whiteboard Client represents a client working on the Whiteboard.
  */
@@ -26,8 +24,8 @@ public class WhiteboardClient {
     private boolean outActive = true;
     private BufferedReader in;
     private PrintWriter out;
-    private String whiteboardName;
-    public final BlockingQueue<String> outputCommandsQueue; //For communication with the server
+    protected String whiteboardName;
+    protected final BlockingQueue<String> outputCommandsQueue; //For communication with the server
     private final List<String> usersInWhiteboard;
     private WhiteboardGUI whiteboards; //The GUI representation of a Whiteboard
     private int width;
@@ -127,7 +125,7 @@ public class WhiteboardClient {
             while(true) {
                 for (String line = in.readLine(); line != null; line = in.readLine()) {
                     handleResponse(line);
-                    //                    System.out.println("Server Response: " + line);
+//                    System.out.println("Server Response: " + line);
                 }
             }   
         }catch (SocketException e) {
@@ -158,41 +156,37 @@ public class WhiteboardClient {
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
                 whiteboards.chooseWhiteboardPopup();
-                //(erwin) need this to update the whiteboard list in sidepanel (as a new whiteboard will be made)
-                // should not set what thw whiteboard is until you actually get it assigned
             } else if (tokens[1].equals("on") && tokens[2].equals("board")) {
                 //updates the client's whiteboard
                 whiteboardName = tokens[3];
                 // Updates the Canvas' Whiteboard Name 
-                whiteboards.canvas.whiteboardName = tokens[3];              
+                whiteboards.canvas.setWhiteboardName(tokens[3]);              
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
                 }
             } else if (tokens[0].equals("Updating") && tokens[1].equals("Clients")){
                 usersInWhiteboard.clear();
-                //(erwin) added this in to update sidepanel
-                //whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             } else if (tokens[0].equals("sameClient")){
                 if (!usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.add(tokens[1]);
-                    //(erwin) added this in to update sidepanel
-                    //whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
             } else if (tokens[0].equals("removeClient")){
                 if (usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.remove(tokens[1]);
-                    //(erwin) added this in to update sidepanel
                     whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
+                if (!(whiteboardName != null)){
+                    whiteboardName = "Board1";
+                }
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
-                //(erwin)added this to update when new board added
+                whiteboards.canvas.setWhiteboardName(tokens[1]);              
                 whiteboards.updateTitle(whiteboardName);
             } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("draw"))){
                 int x1 = Integer.parseInt(tokens[2]);

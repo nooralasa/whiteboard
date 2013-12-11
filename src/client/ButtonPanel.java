@@ -1,4 +1,4 @@
-package canvas;
+package client;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -12,9 +12,6 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import canvas.Canvas;
-import canvas.WhiteboardGUI;
 
 /**
  * ButtonPanel represents the buttons panel in the Collaborative Whiteboards GUI.
@@ -48,11 +45,8 @@ public class ButtonPanel extends JPanel {
         this.setLayout(layout);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
-        
-        /*
-         * Draw button
-         */
-        
+
+        // Draw Button
         drawButton = new JButton();
         drawButton.setName("drawButton");
         drawButton.setText("Erase");
@@ -61,13 +55,11 @@ public class ButtonPanel extends JPanel {
                 try {
                     //changes between draw modes - this changes the label of strokeState to reflect the draw state
                     if (canvas.drawMode){
-
                         canvas.drawMode = false;
                         drawButton.setText("Draw");
                         strokeState.setText("Stroke State: Erase");
                     } else{
                         canvas.drawMode = true;
-
                         drawButton.setText("Erase");
                         strokeState.setText("Stroke State: Draw");
                     }
@@ -76,11 +68,8 @@ public class ButtonPanel extends JPanel {
                 }
             }
         });
-        
-        /*
-         * Help button
-         */
-        
+
+        // Help Button
         helpButton = new JButton();
         helpButton.setName("helpButton");
         helpButton.setText("Help");
@@ -89,17 +78,13 @@ public class ButtonPanel extends JPanel {
                 try {
                     //calls the help message
                     whiteboard.helpBox();
-                    //TODO: Fix help message
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
             }
         });
-        
-        /*
-         * Color button
-         */
-        
+
+        // Color Button
         colorButton = new JButton();
         colorButton.setName("colorButton");
         colorButton.setText("Color");
@@ -113,28 +98,20 @@ public class ButtonPanel extends JPanel {
                 }
             }
         });
-       
-        /*
-         * Stroke State Label, displays whether in draw or erase
-         */
+
+        //Stroke State Label, displays whether in draw or erase
         strokeState = new JLabel();
         strokeState.setName("strokeState");
         strokeState.setText("Stroke State: Draw");
-        
-        /*
-         * Stroke size label
-         */
-        
+
+        //Stroke size label
         strokeSizeLabel = new JLabel();
         strokeSizeLabel.setName("strokeSizeLabel");
         strokeSizeLabel.setText("Stroke Size");
 
-        /*
-         * Creates the slider for stroke size
-         */
-        
+        // Creates the slider for stroke size
         strokeSize = new JSlider(JSlider.HORIZONTAL,
-                                              SLIDER_MIN, SLIDER_MAX, SLIDER_INIT);
+                SLIDER_MIN, SLIDER_MAX, SLIDER_INIT);
         strokeSize.addChangeListener(new ChangeListener(){
             @Override
             public void stateChanged(ChangeEvent e){
@@ -152,11 +129,9 @@ public class ButtonPanel extends JPanel {
         strokeSize.setPaintLabels(true);
         Font font = new Font("Serif", Font.ITALIC, 15);
         strokeSize.setFont(font);
-        
+
         //layout
-        layout.setHorizontalGroup(
-                layout.createSequentialGroup()
-                
+        layout.setHorizontalGroup(layout.createSequentialGroup()
                 .addComponent(drawButton)
                 .addComponent(colorButton)
                 .addComponent(helpButton)
@@ -164,12 +139,11 @@ public class ButtonPanel extends JPanel {
                 .addGroup(layout.createParallelGroup()
                         .addComponent(strokeSize)
                         .addComponent(strokeSizeLabel))
-                
-                );
-        layout.setVerticalGroup(
-                layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 
+                );
+        
+        layout.setVerticalGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addComponent(colorButton)
                         .addComponent(drawButton)
                         .addComponent(helpButton)
@@ -177,7 +151,7 @@ public class ButtonPanel extends JPanel {
                         .addGroup(layout.createSequentialGroup()
                                 .addComponent(strokeSizeLabel) 
                                 .addComponent(strokeSize)))
-                       
+
                 );
     }
 

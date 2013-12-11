@@ -1,4 +1,4 @@
-package canvas;
+package client;
 
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
@@ -19,13 +19,12 @@ import javax.swing.WindowConstants;
  * Whiteboard GUI represents the graphical user interface for the collaborative whiteboards.
  */
 public class WhiteboardGUI extends JFrame {
-    public Canvas canvas;
+    protected Canvas canvas;
     private ButtonPanel buttonPanel;
     private SidePanel sidePanel;
     public String clientName;
     private final List<String> existingWhiteboards;
-    public final BlockingQueue<String> outputCommandsQueue;
-    private String currentWhiteboard;
+    protected final BlockingQueue<String> outputCommandsQueue;
 
     /**
      * 
@@ -136,7 +135,7 @@ public class WhiteboardGUI extends JFrame {
             desiredWhiteboardName = (String) JOptionPane.showInputDialog(popup, whiteboardNames + message + "\n" + noSpaceMessage + "Please input a valid whiteboard name:", "Whiteboard Name", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
         }
         
-        
+        sidePanel.selectedWhiteboard = desiredWhiteboardName;
         this.updateTitle(desiredWhiteboardName);
         if (existingWhiteboards.contains(desiredWhiteboardName)){
             outputCommandsQueue.offer(clientName + " selectBoard " + desiredWhiteboardName);
