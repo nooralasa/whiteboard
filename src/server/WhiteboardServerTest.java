@@ -82,7 +82,7 @@ public class WhiteboardServerTest {
         String three = whiteboardServer.commandQueues.get(threadNum).take();
         String four = whiteboardServer.commandQueues.get(threadNum).take();
         String five = whiteboardServer.commandQueues.get(threadNum).take();
-
+        
         assertEquals(one.substring(0, 21).equals("Existing Whiteboards "), true);
         assertEquals(two.substring(0, 21).equals("Existing Whiteboards "), true);
         assertEquals(three.substring(0, 21).equals("Existing Whiteboards "), true);
