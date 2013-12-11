@@ -166,8 +166,7 @@ public class WhiteboardServer {
         try {
             // Constantly poll the client's Blocking Queue in the Commands Queue
             while (outputThreadActive.get(threadNum)) {
-                BlockingQueue<String> commandsQueue = commandQueues
-                        .get(threadNum);
+                BlockingQueue<String> commandsQueue = commandQueues.get(threadNum);
                 while (commandsQueue.peek() != null) {
                     String output = (String) commandsQueue.take();
                     out.println(output);
@@ -241,8 +240,7 @@ public class WhiteboardServer {
                 if (!clientToWhiteboardMap.containsKey(tokens[2])) {
                     clientToWhiteboardMap.put(tokens[2], "");
                     clientToThreadNumMap.put(tokens[2], threadNum);
-                    // Send existing Whiteboard names only to the user that just
-                    // joined
+                    // Send existing Whiteboard names only to the user that just joined
                     getExistingWhiteboardsOne(threadNum);
                     commandQueues.get(threadNum).offer("Select a whiteboard");
                 } else { // If the username already exists in the server
@@ -260,8 +258,7 @@ public class WhiteboardServer {
                 }
                 // Send existing Whiteboard names to all users
                 getExistingWhiteboardsAll();
-            } else if ((tokens[1].equals("draw"))
-                    || (tokens[1].equals("erase"))) {
+            } else if ((tokens[1].equals("draw")) || (tokens[1].equals("erase"))) {
                 // Put the input in the Whiteboard commandlist
                 whiteboardToCommandsMap.get(tokens[0]).add(input);
                 // Putting commands into all collaborator queues
@@ -378,8 +375,8 @@ public class WhiteboardServer {
     }
 
     /**
-     * Sends out to all clients the name of the client who disconnected and was
-     * working on the same Whiteboard
+     * Sends out to all clients the names of the current clients on the same whiteboard
+     * and makes the disconnected client 
      * 
      * @param client
      *            the name of the client who disconnected
@@ -389,19 +386,16 @@ public class WhiteboardServer {
         whiteboardToClientsMap.get(clientToWhiteboardMap.get(client)).remove(client);
         String clientCommand = "removeClient " + client;
 
-        // Go through all of the Whiteboards and send all collaborating clients
-        // the names of the other collaborators
+        // Go through all of the Whiteboards and send all collaborating clients the names of the other collaborators
         for (String whiteboard : whiteboardToClientsMap.keySet()) {
             ArrayList<String> sameClients = whiteboardToClientsMap.get(whiteboard);
 
-            // Send each collaborator that shares the Whiteboard the names of
-            // the other collaborators
+            // Send each collaborator that shares the Whiteboard the names of the other collaborators
             for (String c : sameClients) {
                 commandQueues.get(clientToThreadNumMap.get(c)).offer(clientCommand);
             }
         }
-        outputThreadActive.set(threadNum, false); // Makes the output thread
-                                                  // finish
+        outputThreadActive.set(threadNum, false); // Makes the output thread finish
     }
 
     /**
