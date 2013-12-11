@@ -193,8 +193,7 @@ public class WhiteboardServer {
         BufferedReader in = new BufferedReader(new InputStreamReader(
                 socket.getInputStream()));
         try {
-            for (String line = in.readLine(); line != null; line = in
-                    .readLine()) {
+            for (String line = in.readLine(); line != null; line = in.readLine()) {
                 if (line.substring(0, 10).equals("Disconnect")) { // If the server receives the disconnectmessage
                     in.close();
                     socket.close();
