@@ -50,7 +50,7 @@ public class WhiteboardClient {
         portNumber = port;
     }
 
-    public void createGUI(){
+    protected void createGUI(){
         whiteboards = new WhiteboardGUI(width,height, outputCommandsQueue);  
         outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
         createWhiteboard(whiteboards.clientName);
@@ -60,7 +60,7 @@ public class WhiteboardClient {
      * Creates the Whiteboard Window and makes the Whiteboard.
      * @param whiteboard
      */
-    public void createWhiteboard(String whiteboard) {
+    protected void createWhiteboard(String whiteboard) {
         whiteboards.createWindow(whiteboard);
         whiteboards.makeWhiteboard();
     }
@@ -72,7 +72,7 @@ public class WhiteboardClient {
      *             if the main server socket is broken (IOExceptions from
      *             individual clients do *not* terminate serve())
      */
-    public void connectToServer(){
+    protected void connectToServer(){
         try {
             final Socket clientSocket = new Socket(ipAddress, portNumber);
             // start a new thread to handle the connection

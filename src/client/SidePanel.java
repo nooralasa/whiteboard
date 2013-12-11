@@ -128,7 +128,7 @@ public class SidePanel extends JPanel {
      * @param whiteboards whiteboards to display in the JList
      * @param currentWhiteboard current whiteboard of the client
      */
-    public void updateWhiteboardsList(List<String> whiteboards, String currentWhiteboard){
+    protected void updateWhiteboardsList(List<String> whiteboards, String currentWhiteboard){
         whiteboardsInServerListModel.removeAllElements();
         if (!(selectedWhiteboard != null)){
             selectedWhiteboard = currentWhiteboard;
@@ -142,7 +142,7 @@ public class SidePanel extends JPanel {
      * Updates the JList with the clients.
      * @param clients clients to display in the JList
      */
-    public void updateClientsList(List<String> clients){
+    protected void updateClientsList(List<String> clients){
         usersInWhiteboardListModel.removeAllElements();
         for (String client : clients){
             usersInWhiteboardListModel.addElement(client);

@@ -22,7 +22,7 @@ public class WhiteboardGUI extends JFrame {
     protected Canvas canvas;
     private ButtonPanel buttonPanel;
     private SidePanel sidePanel;
-    public String clientName;
+    protected String clientName;
     private final List<String> existingWhiteboards;
     protected final BlockingQueue<String> outputCommandsQueue;
 
@@ -35,7 +35,6 @@ public class WhiteboardGUI extends JFrame {
      * @param height height in pixels
      * @param outputCommandsQueue
      */
-
     public WhiteboardGUI(int width, int height, BlockingQueue<String> outputCommandsQueue) {
         this.outputCommandsQueue = outputCommandsQueue;
         this.canvas = new Canvas(width,height, outputCommandsQueue);
@@ -47,16 +46,16 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Updates the title of the JFrame GUI
      */
-    public void updateTitle(String currentBoard) {
+    protected void updateTitle(String currentBoard) {
         this.setTitle(clientName + " working on " + currentBoard);
     }
 
     /**
      * Creates a new window displaying the GUI - canvas, buttonPanel,sidePanel,etc
      */
-    public void createWindow(String clientName) {
+    protected void createWindow(String clientName) {
         setState(java.awt.Frame.NORMAL);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO: does this conflict with the other one later in the program
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         add(canvas, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -67,30 +66,28 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Getter method for existingWhiteboards
      */
-
-    public List<String> getExistingWhiteboards() {
+    protected List<String> getExistingWhiteboards() {
         return existingWhiteboards;
     }
 
     /**
      * Getter method for sidePanel
      */
-    public SidePanel getSidePanel(){
+    protected SidePanel getSidePanel(){
         return sidePanel;
     }
 
     /**
      * Getter method for buttonPanel
      */
-
-    public ButtonPanel getButtonPanel(){
+    protected ButtonPanel getButtonPanel(){
         return buttonPanel;
     }
 
     /**
      * Getter method for Canvas
      */
-    public Canvas getCanvas() {
+    protected Canvas getCanvas() {
         return canvas;
     }
 
@@ -100,7 +97,7 @@ public class WhiteboardGUI extends JFrame {
      * @param String message represents the special message to attach depending on the situation
      */
 
-    public String getUsername(String message){
+    protected String getUsername(String message){
         final JFrame popup = new JFrame(); // Popup asking for Username
         Object[] possibilities = null;
         popup.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -119,7 +116,7 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Lets the user choose their whiteboard. Popups a Jframe that has a textfield to input the desired 
      */
-    public void chooseWhiteboardPopup(){
+    protected void chooseWhiteboardPopup(){
         JFrame popup = new JFrame(); // Popup asking for Whiteboard Name
         Object[] possibilities = null;
         String whiteboardNames = "Existing Whiteboards: ";
@@ -147,7 +144,7 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Let's the user choose a new whiteboard.
      */
-    public void chooseNewWhiteboard(String desiredWhiteboardName){
+    protected void chooseNewWhiteboard(String desiredWhiteboardName){
         this.updateTitle(desiredWhiteboardName);
         canvas.fillWithWhite(); // Erases the Board
         if (existingWhiteboards.contains(desiredWhiteboardName)){
@@ -158,7 +155,7 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Pops up help box
      */
-    public void helpBox(){
+    protected void helpBox(){
         //default title and icon
         String helpMessage = "Collaborative Whiteboard Instructions \n\nDrawing and Erasing \n\n";
         helpMessage += "To draw, simply click and draw your mouse cursor across the screen. \nDo the same for erasing. \n";
@@ -178,7 +175,7 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Pops up color chooser
      */
-    public void colorChooser(){
+    protected void colorChooser(){
         JFrame popupColor = new JFrame("Color Chooser");
         popupColor.add(canvas.getTcc(), BorderLayout.CENTER);
         popupColor.pack();
@@ -188,7 +185,7 @@ public class WhiteboardGUI extends JFrame {
     /**
      * Uses an actionlistener on the to disconnect the client from the server
      */
-    public void makeWhiteboard() {
+    protected void makeWhiteboard() {
         // set up the UI (on the event-handling thread)
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -212,7 +209,7 @@ public class WhiteboardGUI extends JFrame {
     public static void main(String[] args) {
         BlockingQueue<String> queue = new ArrayBlockingQueue<String>(10000000);
         WhiteboardGUI client = new WhiteboardGUI(800,600,queue);
-        client.createWindow("test"); // TODO: this needs to be updated with the username correctly
-        client.makeWhiteboard(); //TODO: needs a more descriptive name (not accurate at all)
+        client.createWindow("test");
+        client.makeWhiteboard();
     }
 }
