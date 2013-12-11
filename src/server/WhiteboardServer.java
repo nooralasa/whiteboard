@@ -40,31 +40,25 @@ public class WhiteboardServer {
      */
     public WhiteboardServer() throws IOException {
         // Maps each client to the Whiteboard it is working on
-        clientToWhiteboardMap = Collections
-                .synchronizedMap(new HashMap<String, String>());
+        clientToWhiteboardMap = Collections.synchronizedMap(new HashMap<String, String>());
 
         // Maps each Whiteboard to all of its clients (similar to
         // clientToWhiteboardMap), used to save repeat iterations in message
         // passing
-        whiteboardToClientsMap = Collections
-                .synchronizedMap(new HashMap<String, ArrayList<String>>());
+        whiteboardToClientsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>());
 
         // Maps each Whiteboard to its Commands History
-        whiteboardToCommandsMap = Collections
-                .synchronizedMap(new HashMap<String, ArrayList<String>>());
+        whiteboardToCommandsMap = Collections.synchronizedMap(new HashMap<String, ArrayList<String>>());
 
         // List of Blocking Queues used to send messages to clients
-        commandQueues = Collections
-                .synchronizedList(new ArrayList<BlockingQueue<String>>());
+        commandQueues = Collections.synchronizedList(new ArrayList<BlockingQueue<String>>());
 
         // Maps each client to its threadnum which corresponds to its Blocking
         // Queue in the commandsQueue
-        clientToThreadNumMap = Collections
-                .synchronizedMap(new HashMap<String, Integer>());
+        clientToThreadNumMap = Collections.synchronizedMap(new HashMap<String, Integer>());
 
         // List of Booleans to keep output threads active
-        outputThreadActive = Collections
-                .synchronizedList(new ArrayList<Boolean>());
+        outputThreadActive = Collections.synchronizedList(new ArrayList<Boolean>());
 
         // Creates the Server's starting Whiteboards
         createBoards();
@@ -91,8 +85,7 @@ public class WhiteboardServer {
 
             // Creates the blocking queue for each client and adds it to the
             // commandQueues list
-            BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<String>(
-                    100000);
+            BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<String>(100000);
             commandQueues.add(blockingQueue);
 
             final Integer threadNum = threadID.get();
@@ -109,24 +102,6 @@ public class WhiteboardServer {
         whiteboardToCommandsMap.put("Board1", emptyCommandAndClientList);
         whiteboardToCommandsMap.put("Board2", emptyCommandAndClientList);
         whiteboardToCommandsMap.put("Board3", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board4", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board5", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board6", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board7", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board8", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board9", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board10", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board11", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board12", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board13", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board14", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board15", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board16", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board17", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board18", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board19", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board20", emptyCommandAndClientList);
-        // whiteboardToCommandsMap.put("Board21", emptyCommandAndClientList);
     }
 
     /**
@@ -143,15 +118,13 @@ public class WhiteboardServer {
         // Thread to handle inputs from the client
         Thread inputThread = new Thread(new Runnable() {
             public void run() {
-                System.out.println("Starting Client Input Thread with Thread "
-                        + threadNum);
+                System.out.println("Starting Client Input Thread with Thread " + threadNum);
                 try {
                     handleClientInput(socket, threadNum);
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    System.out.println("Input Client Thread with Thread "
-                            + threadNum + " done running.");
+                    System.out.println("Input Client Thread with Thread " + threadNum + " done running.");
                 }
             }
         });
@@ -159,20 +132,17 @@ public class WhiteboardServer {
         // Thread to handle outputs to the client
         Thread outputThread = new Thread(new Runnable() {
             public void run() {
-                System.out.println("Starting Output Thread with Thread "
-                        + threadNum);
+                System.out.println("Starting Output Thread with Thread " + threadNum);
                 try {
                     boolean outputThreadStatus = true;
                     outputThreadActive.add(outputThreadStatus);
                     handleOutputs(socket, threadNum);
                 } catch (SocketException e) {
-                    System.err.println("Client socket closed for Thread "
-                            + threadNum.toString());
+                    System.err.println("Client socket closed for Thread " + threadNum.toString());
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    System.out.println("Output Thread with Thread " + threadNum
-                            + " done running.");
+                    System.out.println("Output Thread with Thread " + threadNum + " done running.");
                 }
             }
         });
@@ -204,8 +174,7 @@ public class WhiteboardServer {
                 }
             }
         } finally {
-            System.out.println("Socket for Thread " + threadNum.toString()
-                    + " closed");
+            System.out.println("Socket for Thread " + threadNum.toString() + " closed");
         }
     }
 
@@ -241,11 +210,9 @@ public class WhiteboardServer {
                 }
             }
         } catch (SocketException e) {
-            System.err.println("Input: Client socket closed for Thread "
-                    + threadNum.toString());
+            System.err.println("Input: Client socket closed for Thread " + threadNum.toString());
         } finally {
-            System.err.println("Input Thread for Thread "
-                    + threadNum.toString() + " done");
+            System.err.println("Input Thread for Thread " + threadNum.toString() + " done");
         }
     }
 
@@ -326,8 +293,7 @@ public class WhiteboardServer {
             } else {
                 System.err.println("In Server Regex, no action");
                 System.err.println(input);
-                commandQueues.get(threadNum)
-                        .offer("In Server Regex, no action");
+                commandQueues.get(threadNum).offer("In Server Regex, no action");
             }
         }
     }
