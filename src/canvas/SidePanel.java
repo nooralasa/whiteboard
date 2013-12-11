@@ -16,6 +16,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+/**
+ * SidePanel represents the side panel in the Collaborative Whiteboards GUI.
+ * The SidePanel includes a view of the users on each board and the available whiteboards.
+ */
 public class SidePanel extends JPanel {
     private JScrollPane usersInWhiteboard;
     private JLabel usersInWhiteboardLabel;
@@ -29,10 +33,12 @@ public class SidePanel extends JPanel {
     private String selectedWhiteboard;
 
     /**
-     * 
-     * @param width
-     * @param height
-     * @param whiteboard
+     * Side panel for the GUI containing the usersInWhiteboard & whiteboards in server JList
+     * along with their appropriate labels. updateClientList() and updateWhiteboardsList()
+     * are called by the client in handleResponse()
+     * @param int width
+     * @param int height
+     * @param WhiteboardGUI whiteboard
      */
     public SidePanel(int width, int height, final WhiteboardGUI whiteboard){
         this.setPreferredSize(new Dimension(width, height));
@@ -40,7 +46,7 @@ public class SidePanel extends JPanel {
         this.setLayout(layout);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
-
+        
         // Creates the Label for the Same Users in the Whiteboard
         usersInWhiteboardLabel = new JLabel();
         usersInWhiteboardLabel.setName("usersInWhiteboardLabel");
@@ -63,10 +69,15 @@ public class SidePanel extends JPanel {
         whiteboardsInServerLabel.setText("Whiteboards in Server");
         // Creates the JList for the Whiteboards on the Server
         whiteboardsInServerListModel = new DefaultListModel<String>();
+
         whiteboardsInServerList = new JList<String>(whiteboardsInServerListModel);
         whiteboardsInServerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+
+
         whiteboardsInServerList.setLayoutOrientation(JList.VERTICAL);
-        whiteboardsInServerList.setVisibleRowCount(-1);
+        
+        //sets selected whiteboard to current whiteboard (see updateWhiteboardList())
+
 
         // Action Listener for when a whiteboard is selected in the JList
         whiteboardsInServerList.addListSelectionListener(new ListSelectionListener() {
@@ -78,12 +89,17 @@ public class SidePanel extends JPanel {
         });
         // Creates the ScrollPane for the Whiteboards on the Server
         whiteboardsInServer = new JScrollPane(whiteboardsInServerList);
+        //sets the scrollpane index to the first index - current whiteboard 
+
         whiteboardsInServer.setPreferredSize(new Dimension(250, 80));//TODO: should be set from height and width
 
         // Creates the Button to Switch to a New Whiteboard
         selectWhiteboard = new JButton();
         selectWhiteboard.setName("selectWhiteboard");
         selectWhiteboard.setText("Switch Whiteboards");
+        /*
+         * This action listener changes the whiteboardGUI's selected whiteboard to the one selected in the JList
+         */
         selectWhiteboard.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -115,11 +131,20 @@ public class SidePanel extends JPanel {
     /**
      * Updates the JList with the whiteboards
      * @param whiteboards whiteboards to display in the JList
+     * @param currentWhiteboard current whiteboard of the client
      */
-    public void updateWhiteboardsList(List<String> whiteboards){
+    public void updateWhiteboardsList(List<String> whiteboards, String currentWhiteboard){
         whiteboardsInServerListModel.removeAllElements();
+        //first index is currentWhiteboard
+        whiteboardsInServerListModel.addElement(currentWhiteboard);
+        //whiteboardsInServerList.setSelectedIndex(0);
+        whiteboardsInServer.getVerticalScrollBar().setValue(0);
         for (String whiteboard : whiteboards){
-            whiteboardsInServerListModel.addElement(whiteboard);
+            if(whiteboard.equals(currentWhiteboard)){
+                //do nothing (no repeat currentWhiteboard)
+            }else{
+                whiteboardsInServerListModel.addElement(whiteboard);
+            }
         }
     }
 

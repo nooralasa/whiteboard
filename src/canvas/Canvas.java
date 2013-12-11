@@ -9,20 +9,17 @@ import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import javax.swing.JColorChooser;
 import javax.swing.JPanel;
 
-import canvas.whiteboardclient.WhiteboardClientBACKUP;
-import canvas.whiteboardclient.WhiteboardClient;
-
-
+/**
+ * Canvas represents a drawing surface that allows the user to draw
+ * on it freehand, with the mouse.
+ */
 public class Canvas extends JPanel{
-    //private WhiteboardClient1 client;
-    // image where the user's drawing is stored
+    // Image storing the whiteboard
     private Image drawingBuffer;
     public boolean drawMode;
     private int strokeSize;
@@ -30,21 +27,21 @@ public class Canvas extends JPanel{
     private final JColorChooser serverTcc = new JColorChooser(Color.BLACK);
     public String whiteboardName;
     public final BlockingQueue<String> outputCommandsQueue;
+    private int width;
+    private int height;
 
     /**
      * Make a canvas.
      * @param width width in pixels
      * @param height height in pixels
      */
-    public Canvas (int width, int height, BlockingQueue<String> queue) {
-        //this.client = new WhiteboardClient1();
+    public Canvas (int canvasWidth, int canvasHeight, BlockingQueue<String> queue) {
+        width = canvasWidth;
+        height = canvasHeight;
         this.setPreferredSize(new Dimension(width, height));
         addDrawingController();
-        // note: we can't call makeDrawingBuffer here, because it only
-        // works *after* this canvas has been added to a window.  Have to
-        // wait until paintComponent() is first called.
         drawMode = true;
-        this.outputCommandsQueue = queue;
+        outputCommandsQueue = queue;
     }
     
     public JColorChooser getTcc() {
@@ -147,7 +144,6 @@ public class Canvas extends JPanel{
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
         String eraseCommand = whiteboardName + " " + "erase" +  " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + strokeSize;
-        
         outputCommandsQueue.offer(eraseCommand);
     }
     
@@ -159,7 +155,6 @@ public class Canvas extends JPanel{
     public void commandDraw(int x1, int y1, int x2, int y2, int currentStrokeSize, String red, String green, String blue) {
         if (drawingBuffer == null) {
             makeDrawingBuffer();
-            System.out.println("make a drawing buffer");
         }
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
 
@@ -250,6 +245,4 @@ public class Canvas extends JPanel{
         public void mouseEntered(MouseEvent e) { }
         public void mouseExited(MouseEvent e) { }
     }
-
-
 }

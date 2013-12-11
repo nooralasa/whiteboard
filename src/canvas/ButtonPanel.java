@@ -10,14 +10,16 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.JToggleButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import canvas.Canvas;
 import canvas.WhiteboardGUI;
-import canvas.whiteboardclient.WhiteboardClientBACKUP;
 
+/**
+ * ButtonPanel represents the buttons panel in the Collaborative Whiteboards GUI.
+ * It supports the GUI for accessing the toolkit provided for the clients to make changes  to the Canvas.
+ */
 public class ButtonPanel extends JPanel {
     private JButton drawButton;
     private JButton helpButton;
@@ -30,7 +32,13 @@ public class ButtonPanel extends JPanel {
     static final int SLIDER_MIN= 0;
     static final int SLIDER_MAX = 30;
     static final int SLIDER_INIT = 0; 
-
+    /**
+     * Button panel for the GUI containing the Draw button, Erase button, Help button, and Choose Color button.
+     * Also contains a slider to select strokeSize. Contains appropriate labels
+     * @param int width
+     * @param int height
+     * @param WhiteboardGUI whiteboard
+     */
 
     public ButtonPanel (int width, int height, final WhiteboardGUI whiteboard){
         this.whiteboard = whiteboard;
@@ -40,14 +48,20 @@ public class ButtonPanel extends JPanel {
         this.setLayout(layout);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
-
+        
+        /*
+         * Draw button
+         */
+        
         drawButton = new JButton();
         drawButton.setName("drawButton");
         drawButton.setText("Erase");
         drawButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    //changes between draw modes - this changes the label of strokeState to reflect the draw state
                     if (canvas.drawMode){
+
                         canvas.drawMode = false;
                         drawButton.setText("Draw");
                         strokeState.setText("Stroke State: Erase");
@@ -62,12 +76,18 @@ public class ButtonPanel extends JPanel {
                 }
             }
         });
+        
+        /*
+         * Help button
+         */
+        
         helpButton = new JButton();
         helpButton.setName("helpButton");
         helpButton.setText("Help");
         helpButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    //calls the help message
                     whiteboard.helpBox();
                     //TODO: Fix help message
                 } catch (Exception e1) {
@@ -75,12 +95,18 @@ public class ButtonPanel extends JPanel {
                 }
             }
         });
+        
+        /*
+         * Color button
+         */
+        
         colorButton = new JButton();
         colorButton.setName("colorButton");
         colorButton.setText("Color");
         colorButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    //pops up the color chooser (clicking color button) in the whiteboardGUI
                     whiteboard.colorChooser();
                 } catch (Exception e1) {
                     e1.printStackTrace();
@@ -88,15 +114,25 @@ public class ButtonPanel extends JPanel {
             }
         });
        
+        /*
+         * Stroke State Label, displays whether in draw or erase
+         */
         strokeState = new JLabel();
         strokeState.setName("strokeState");
         strokeState.setText("Stroke State: Draw");
+        
+        /*
+         * Stroke size label
+         */
         
         strokeSizeLabel = new JLabel();
         strokeSizeLabel.setName("strokeSizeLabel");
         strokeSizeLabel.setText("Stroke Size");
 
-      //Create the slider
+        /*
+         * Creates the slider for stroke size
+         */
+        
         strokeSize = new JSlider(JSlider.HORIZONTAL,
                                               SLIDER_MIN, SLIDER_MAX, SLIDER_INIT);
         strokeSize.addChangeListener(new ChangeListener(){
@@ -105,6 +141,7 @@ public class ButtonPanel extends JPanel {
                 JSlider source =(JSlider) e.getSource();
                 //only when not adjusting slider
                 if (!source.getValueIsAdjusting()) {
+                    //calls the method in canvas to set the stroke size
                     canvas.setStrokeState(source.getValue());
                 }
             }
@@ -116,6 +153,7 @@ public class ButtonPanel extends JPanel {
         Font font = new Font("Serif", Font.ITALIC, 15);
         strokeSize.setFont(font);
         
+        //layout
         layout.setHorizontalGroup(
                 layout.createSequentialGroup()
                 

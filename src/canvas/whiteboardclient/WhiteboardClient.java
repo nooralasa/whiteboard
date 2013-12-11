@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,13 +16,13 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+
 import canvas.WhiteboardGUI;
 
 /**
  * Whiteboard Client represents a client working on the Whiteboard.
  */
 public class WhiteboardClient {
-    private boolean inActive = true;
     private boolean outActive = true;
     private BufferedReader in;
     private PrintWriter out;
@@ -29,21 +30,32 @@ public class WhiteboardClient {
     public final BlockingQueue<String> outputCommandsQueue; //For communication with the server
     private final List<String> usersInWhiteboard;
     private WhiteboardGUI whiteboards; //The GUI representation of a Whiteboard
+    private int width;
+    private int height;
+    private String ipAddress;
+    private int portNumber;
 
     /**
      * Makes a WhiteboardClient
      * 
      * @param width width of the whiteboard in pixels
      * @param height height of the whiteboard in pixels
-     * @param ipAddress the ipAddress the Server is running on
-     * @param portNumber the port the Client uses to conect to the Server
+     * @param serverIPAddress the ipAddress the Server is running on
+     * @param port the port the Client uses to conect to the Server
      */
-    public WhiteboardClient(int width, int height, String ipAddress, int portNumber) {
+    public WhiteboardClient(final int clientWidth, final int clientHeight, final String serverIPAddress, final int port) {
         outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);     //MAX_INT doesn't work as an argument, thus a very large number is passed on
         usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
-        connectToServer(ipAddress, portNumber);
+        width = clientWidth;
+        height = clientHeight;
+        ipAddress = serverIPAddress;
+        portNumber = port;
+    }
+
+    public void createGUI(){
         whiteboards = new WhiteboardGUI(width,height, outputCommandsQueue);  
         outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
+        createWhiteboard(whiteboards.clientName);
     }
 
     /**
@@ -62,7 +74,7 @@ public class WhiteboardClient {
      *             if the main server socket is broken (IOExceptions from
      *             individual clients do *not* terminate serve())
      */
-    public void connectToServer(String ipAddress, int portNumber){
+    public void connectToServer(){
         try {
             final Socket clientSocket = new Socket(ipAddress, portNumber);
             // start a new thread to handle the connection
@@ -70,7 +82,6 @@ public class WhiteboardClient {
                 public void run() {
                     System.out.println("Starting Client Input Thread");
                     try {
-                        System.out.println("I'm in ConnectToServer");
                         handleServerResponse(clientSocket);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -85,7 +96,6 @@ public class WhiteboardClient {
                     try {
                         handleOutputs(clientSocket);
                     } catch (IOException | InterruptedException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
@@ -112,17 +122,17 @@ public class WhiteboardClient {
      *             if connection has an error or terminates unexpectedly
      */
     private void handleServerResponse(Socket socket) throws IOException {
-        System.out.println("ServerResponse");
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         try {
-            while(inActive) {
-                System.out.println("I'm in here");
+            while(true) {
                 for (String line = in.readLine(); line != null; line = in.readLine()) {
                     handleResponse(line);
-                    System.out.println("Server Response: " + line);
+                    //                    System.out.println("Server Response: " + line);
                 }
-            }
-        } finally {
+            }   
+        }catch (SocketException e) {
+            System.err.println("Input reader closed");
+        }finally {
         }
     }
 
@@ -132,13 +142,13 @@ public class WhiteboardClient {
      * @param input message from server
      */
     private void handleResponse(String input) {
-        String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(Username already taken. Please select a new username.)|(Whiteboard already exists.)|"
-                + "(Instructions: username yourUsername, selectBoard board#, help, bye, board# draw x1 y1 c2 y2, board# erase x1 y1 x2 y2)|(Connection terminated)|"
-                + "(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|([^=]* on board [^=]*)|(Updating Clients)|"
-                + "(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)";
+        String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(removeClient [^=]*)|(Username already taken. Please select a new username.)|"
+                + "(Whiteboard already exists.)|(Select a whiteboard)|(Whiteboard does not exist. Select a different board or make a board.)|"
+                + "([^=]* on board [^=]*)|(Updating Clients)|(Board [^=]* added)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|"
+                + "([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|(Done sending whiteboard names)|(Done sending client names)|(Not in Server Regex)|"
+                + "(In Server Regex, no action)";
         if (!input.matches(regex)) {
-            // invalid input
-            System.err.println("Not in Regex");
+            System.err.println("Not in Client Regex");
             System.err.println(input);
             return ;
         }
@@ -147,7 +157,8 @@ public class WhiteboardClient {
             if (tokens[0].equals("Username")){
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
-                whiteboards.chooseWhiteboard();
+                whiteboards.chooseWhiteboardPopup();
+                //(erwin) need this to update the whiteboard list in sidepanel (as a new whiteboard will be made)
                 // should not set what thw whiteboard is until you actually get it assigned
             } else if (tokens[1].equals("on") && tokens[2].equals("board")) {
                 //updates the client's whiteboard
@@ -160,22 +171,29 @@ public class WhiteboardClient {
                 }
             } else if (tokens[0].equals("Updating") && tokens[1].equals("Clients")){
                 usersInWhiteboard.clear();
-            }else if (tokens[0].equals("sameClient")){
+                //(erwin) added this in to update sidepanel
+                //whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
+            } else if (tokens[0].equals("sameClient")){
                 if (!usersInWhiteboard.contains(tokens[1])){
                     usersInWhiteboard.add(tokens[1]);
+                    //(erwin) added this in to update sidepanel
+                    //whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
+                }
+            } else if (tokens[0].equals("removeClient")){
+                if (usersInWhiteboard.contains(tokens[1])){
+                    usersInWhiteboard.remove(tokens[1]);
+                    //(erwin) added this in to update sidepanel
+                    whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
-                whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards());
-                System.out.println(whiteboards.getExistingWhiteboards());
+                whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
-            }else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
+            } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
                 whiteboardName = tokens[1];
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
+                //(erwin)added this to update when new board added
                 whiteboards.updateTitle(whiteboardName);
-                //TODO: create a white whiteboard and name the title of the jframe or something to indicate the name of the whiteboard
-            } else if ((tokens[0].equals("Instructions:"))){ // probably should get rid of this and make it so that the help box doesn't call server
-                whiteboards.helpBox();
             } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("draw"))){
                 int x1 = Integer.parseInt(tokens[2]);
                 int y1 = Integer.parseInt(tokens[3]);
@@ -193,13 +211,13 @@ public class WhiteboardClient {
                 int y2 = Integer.parseInt(tokens[5]);
                 int newStrokeSize = Integer.parseInt(tokens[6]);
                 whiteboards.getCanvas().commandErase(x1, y1, x2, y2, newStrokeSize);            
-            } else {
-                System.err.println("Invalid Input Tokens > 1");
-                System.err.println(input);
-                return ;
-            }
+            } else if (tokens[2].equals("Server") && (tokens[3].equals("Regex"))){
+                System.err.println("Command " + input); // Don't need to do anything      
+            } else if (tokens[0].equals("In") && (tokens[1].equals("Server"))){
+                System.err.println("Command " + input); // Don't need to do anything      
+            } 
         } else {
-            System.err.println("Invalid Input Tokens < 1");
+            System.err.println("In Server Regex, no action");
             System.err.println(input);
             return ;
         }
@@ -219,15 +237,13 @@ public class WhiteboardClient {
     private void handleOutputs(final Socket socket) throws IOException, InterruptedException {
         out = new PrintWriter(socket.getOutputStream(), true);
         try {
-            while (outActive){ // constantly poll the commands queue //TODO: check with TA what to do about this since when the socket disconnects will still be in the while loop
+            while (outActive){ // constantly poll the commands queue 
                 while (outputCommandsQueue.peek() != null){
                     String output = (String) outputCommandsQueue.take();
-                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
+                    //                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
                     out.println(output);
-                    if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect message
-                        System.out.println("Should be disconnected now");
+                    if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect messages
                         outputCommandsQueue.clear(); // Clears the outputCommandsQueue
-                        inActive = false;
                         outActive = false;
                         out.close();
                         in.close();
@@ -237,6 +253,7 @@ public class WhiteboardClient {
                 }
             }
         } finally {
+            System.out.println("Output thread done");
         }
     }
 
@@ -245,9 +262,10 @@ public class WhiteboardClient {
      * @param ipAddress Server IP Address
      * @param port Server Port
      */
-    public static void runWhiteboardClient(String ipAddress, int port){
-        WhiteboardClient client1 = new WhiteboardClient(800,600, ipAddress, port);
-        client1.createWhiteboard(client1.whiteboards.clientName);
+    public static void runWhiteboardClient(final String ipAddress, final int port, final int clientWidth, final int clientHeight){
+        WhiteboardClient client = new WhiteboardClient(clientWidth,clientHeight, ipAddress, port);
+        client.connectToServer();
+        client.createGUI();
     }
 
     /*
@@ -257,6 +275,8 @@ public class WhiteboardClient {
         // Command-line argument parsing is provided. Do not change this method.
         int port = 4444; // default port
         String ipAddress = "127.0.0.1"; // Localhost IP Address by default
+        int clientWidth = 800;
+        int clientHeight = 600;
         Queue<String> arguments = new LinkedList<String>(Arrays.asList(args));
         try {
             while ( !arguments.isEmpty()) {
@@ -286,6 +306,6 @@ public class WhiteboardClient {
             System.err.println("usage: Whiteboard Client [--ip ipAddress] [--port PORT]");
             return;
         }
-        runWhiteboardClient(ipAddress, port);
+        runWhiteboardClient(ipAddress, port, clientWidth, clientHeight);
     }
 }
