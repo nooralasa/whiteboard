@@ -136,15 +136,15 @@ public class SidePanel extends JPanel {
     public void updateWhiteboardsList(List<String> whiteboards, String currentWhiteboard){
         whiteboardsInServerListModel.removeAllElements();
         //first index is currentWhiteboard
-        whiteboardsInServerListModel.addElement(currentWhiteboard);
+//        whiteboardsInServerListModel.addElement(currentWhiteboard);
         //whiteboardsInServerList.setSelectedIndex(0);
-        whiteboardsInServer.getVerticalScrollBar().setValue(0);
+
         for (String whiteboard : whiteboards){
-            if(whiteboard.equals(currentWhiteboard)){
-                //do nothing (no repeat currentWhiteboard)
-            }else{
+//            if(whiteboard.equals(currentWhiteboard)){
+//                //do nothing (no repeat currentWhiteboard)
+//            }else{
                 whiteboardsInServerListModel.addElement(whiteboard);
-            }
+            //}
         }
     }
 
