@@ -78,7 +78,7 @@ public class WhiteboardGUI extends JFrame {
 
         while (desiredClientName.equals("") || desiredClientName.contains(" ")|| desiredClientName.equals(null)) {
             String noSpaceMessage = "Please enter a username with no spaces composed of at least 1 alphanumeric character \n";
-            desiredClientName = (String) JOptionPane.showInputDialog(popup, noSpaceMessage + "Please input a valid username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "");
+            desiredClientName = (String) JOptionPane.showInputDialog(popup, noSpaceMessage + "Please input a valid username:", "Username", JOptionPane.PLAIN_MESSAGE, null, possibilities, "default");
 
         }
         this.clientName = desiredClientName;
