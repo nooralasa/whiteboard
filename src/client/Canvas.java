@@ -22,7 +22,7 @@ import javax.swing.JPanel;
  */
 public class Canvas extends JPanel{
     // Image storing the whiteboard
-    private Image drawingBuffer;
+    protected Image drawingBuffer;
     protected boolean drawMode;
     private int strokeSize;
     private final JColorChooser tcc = new JColorChooser(Color.BLACK);
@@ -78,9 +78,18 @@ public class Canvas extends JPanel{
         return tcc;
     }
     
-    
+    /*
+     * Sets the whiteboard name to a string
+     */
     protected void setWhiteboardName(String newName){
         whiteboardName = newName;
+    }
+    
+    /*
+     * Get Whiteboard name
+     */ 
+    protected String getWhiteboardName(){
+        return whiteboardName;
     }
     
     /*
@@ -102,8 +111,20 @@ public class Canvas extends JPanel{
      * Draw line/stroke segment size
      */
     protected void setStrokeState(int value) {
-        this.strokeSize = value;
+        if(value >= 0){
+            this.strokeSize = value;
+        }else{
+            this.strokeSize = 0;
+        }
         checkRep();
+    }
+    
+    /*
+     * Getter for strokestate
+     */
+    
+    protected int getStrokeState(){
+        return strokeSize;
     }
 
     /*
@@ -115,6 +136,7 @@ public class Canvas extends JPanel{
             makeDrawingBuffer();
             System.out.println("make a drawing buffer");
         }
+        System.out.println("error");
         Graphics2D g = (Graphics2D) drawingBuffer.getGraphics();
         g.setColor(tcc.getColor());
         g.setStroke(new BasicStroke(strokeSize));
@@ -212,7 +234,23 @@ public class Canvas extends JPanel{
         addMouseListener(controller);
         addMouseMotionListener(controller);
     }
+    
+    /*
+     * Gets the drawingBuffer
+     */
+    
+    public Image getDrawingBuffer(){
+        return drawingBuffer;
+    }
+    
+    /*
+     * get outputCommandQueue
+     */
 
+    public BlockingQueue<String> getCommandQueue(){
+        return outputCommandsQueue;
+    }
+    
     /*
      * DrawingController handles the user's freehand drawing.
      */
@@ -283,7 +321,7 @@ public class Canvas extends JPanel{
         assert ((tcc.getColor().getRed() >= 0) && (tcc.getColor().getRed() <= 255));
         assert ((tcc.getColor().getGreen() >= 0) && (tcc.getColor().getGreen() <= 255));
         assert ((tcc.getColor().getBlue() >= 0) && (tcc.getColor().getBlue() <= 255));
-        assert (tcc == serverTcc);
+        assert (tcc.equals(serverTcc));
         assert (serverTcc != null);
         assert ((serverTcc.getColor().getRed() >= 0) && (serverTcc.getColor().getRed() <= 255));
         assert ((serverTcc.getColor().getGreen() >= 0) && (serverTcc.getColor().getGreen() <= 255));

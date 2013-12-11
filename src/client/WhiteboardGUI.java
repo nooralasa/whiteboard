@@ -186,7 +186,7 @@ public class WhiteboardGUI extends JFrame {
     }
 
     /**
-     * Main program. Make a window containing a Canvas.
+     * Uses an actionlistener on the to disconnect the client from the server
      */
     public void makeWhiteboard() {
         // set up the UI (on the event-handling thread)
