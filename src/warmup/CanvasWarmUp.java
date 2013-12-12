@@ -208,8 +208,8 @@ public class CanvasWarmUp extends JPanel {
                 window.setLayout(new BorderLayout());
                 CanvasWarmUp canvas = new CanvasWarmUp(800, 600);
                 window.add(canvas, BorderLayout.CENTER);
-                //ButtonPanel buttonPanel = new ButtonPanel(800, 50, canvas);
-                //window.add(buttonPanel, BorderLayout.SOUTH);
+                ButtonPanelWarmup buttonPanel = new ButtonPanelWarmup(800, 50, canvas);
+                window.add(buttonPanel, BorderLayout.SOUTH);
                 window.pack();
                 window.setVisible(true);
             }
