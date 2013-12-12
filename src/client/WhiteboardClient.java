@@ -25,9 +25,9 @@ public class WhiteboardClient {
     private BufferedReader in;
     private PrintWriter out;
     protected String whiteboardName;
-    protected final BlockingQueue<String> outputCommandsQueue; //For communication with the server
+    protected final BlockingQueue<String> outputCommandsQueue; // For communication with the server
     private final List<String> usersInWhiteboard;
-    private WhiteboardGUI whiteboards; //The GUI representation of a Whiteboard
+    private WhiteboardGUI whiteboards; // The Whiteboard GUI
     private int width;
     private int height;
     private String ipAddress;
@@ -42,7 +42,8 @@ public class WhiteboardClient {
      * @param port the port the Client uses to conect to the Server
      */
     public WhiteboardClient(final int clientWidth, final int clientHeight, final String serverIPAddress, final int port) {
-        outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);     //MAX_INT doesn't work as an argument, thus a very large number is passed on
+        //MAX_INT doesn't work as an argument, thus a very large number is passed on
+        outputCommandsQueue = new ArrayBlockingQueue<String>(10000000);     
         usersInWhiteboard = Collections.synchronizedList(new ArrayList<String>());
         width = clientWidth;
         height = clientHeight;
@@ -50,9 +51,13 @@ public class WhiteboardClient {
         portNumber = port;
     }
 
+    /**
+     * Creates the Whiteboard GUI.
+     */
     protected void createGUI(){
         whiteboards = new WhiteboardGUI(width,height, outputCommandsQueue);  
-        outputCommandsQueue.offer(whiteboards.getUsername(""));     //Asks for the username
+        //Asks for the username
+        outputCommandsQueue.offer(whiteboards.getUsername(""));
         createWhiteboard(whiteboards.clientName);
     }
 
@@ -66,11 +71,9 @@ public class WhiteboardClient {
     }
 
     /**
-     * Connects to the server.
+     * Connects the client to the server socket and starts the threads to handle inputs and outputs between the server and the client.
      * 
-     * @throws IOException
-     *             if the main server socket is broken (IOExceptions from
-     *             individual clients do *not* terminate serve())
+     * @throws IOException if the main server socket is broken (IOExceptions from individual clients do *not* terminate serve())
      */
     protected void connectToServer(){
         try {
@@ -110,16 +113,13 @@ public class WhiteboardClient {
         }  
     }
 
-
     /**
-     * Handle a single connection with the server. Returns when client disconnects.
+     * Listens to the socket for messages and passes inputs to the handleRequest.
      * 
-     * @param socket
-     *            socket where the client is connected
-     * @throws IOException
-     *             if connection has an error or terminates unexpectedly
+     * @param socket represents the socket where the client is connected
+     * @throws IOException if connection has an error or terminates unexpectedly
      */
-    private void handleServerResponse(Socket socket) throws IOException {
+    private void handleServerResponse(final Socket socket) throws IOException {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         try {
             while(true) {
@@ -135,9 +135,8 @@ public class WhiteboardClient {
     }
 
     /**
-     * Handler for input, performing requested operations and returning an output message.
-     * 
-     * @param input message from server
+     * Parses input from the server, performing appropriate operations.
+     * @param input represents the message from server
      */
     private void handleResponse(String input) {
         String regex = "(Existing Whiteboards [^=]*)|(sameClient [^=]*)|(removeClient [^=]*)|(Username already taken. Please select a new username.)|"
@@ -220,12 +219,10 @@ public class WhiteboardClient {
     }
 
     /**
-     * Handle a single client connection. Returns when client disconnects.
+     * Polls the outputCommandQueue and writes items as text messages to the client's socket. 
      * 
-     * @param socket
-     *            socket where the client is connected
-     * @throws IOException
-     *             if connection has an error or terminates unexpectedly
+     * @param socket represents socket where the client is connected
+     * @throws IOException if connection has an error or terminates unexpectedly
      * @throws InterruptedException 
      */
     private void handleOutputs(final Socket socket) throws IOException, InterruptedException {
@@ -234,9 +231,9 @@ public class WhiteboardClient {
             while (outActive){ // constantly poll the commands queue 
                 while (outputCommandsQueue.peek() != null){
                     String output = (String) outputCommandsQueue.take();
-                    //                    System.out.println("Output to Server: " + output); // so we can see what is being output DELETE later
+//                    System.out.println("Output to Server: " + output); 
                     out.println(output);
-                    if (output.substring(0,10).equals("Disconnect")) { // this is if thank you is the disconnect messages
+                    if (output.substring(0,10).equals("Disconnect")) { // Disconnect Message
                         outputCommandsQueue.clear(); // Clears the outputCommandsQueue
                         outActive = false;
                         out.close();
@@ -253,8 +250,10 @@ public class WhiteboardClient {
 
     /**
      * Runs the Whiteboard Client.
-     * @param ipAddress Server IP Address
-     * @param port Server Port
+     * @param ipAddress represents the Server IP Address
+     * @param port represents the WhiteboardServer Port
+     * @param clientWidth represents the width of the client GUI
+     * @param clientHeight represents the height of the client GUI
      */
     public static void runWhiteboardClient(final String ipAddress, final int port, final int clientWidth, final int clientHeight){
         WhiteboardClient client = new WhiteboardClient(clientWidth,clientHeight, ipAddress, port);
@@ -262,8 +261,20 @@ public class WhiteboardClient {
         client.createGUI();
     }
 
-    /*
-     * Main program. Make a window containing a Canvas.
+    /**
+     * Starts a Whiteboard Client using the given arguments.
+     * 
+     * Usage: WhiteboardClient [--port PORT][--ip IPADDRESS]
+     * 
+     * PORT is an optional integer in the range 0 to 65535 inclusive, specifying
+     * the port the server should be listening on for incoming connections. E.g.
+     * "WhiteboardClient --port 1234" starts the server listening on port 1234.
+     * 
+     * IPADDRESS is an optional string representing the IP Address of the WhiteboardServer.
+     * e.g. "WhiteboardClient --ip "18.189.22.230"" attempts to connect to the 
+     * WhiteboardServer with that IP address.
+     * 
+     * @throws IOException
      */
     public static void main(String[] args) {
         // Command-line argument parsing is provided. Do not change this method.

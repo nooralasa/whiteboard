@@ -154,19 +154,18 @@ public class WhiteboardServer {
      * Polls the output BlockingQueue of each client and writes items as text
      * messages to the client's socket.
      * 
-     * @param socket
-     *            represents the socket that the client is connected to
-     * @throws IOException
-     *             if connection has an error or terminates unexpectedly
+     * @param socket represents the socket that the client is connected to
+     * @throws IOException if connection has an error or terminates unexpectedly
      * @throws InterruptedException
      */
     private void handleOutputs(final Socket socket, final Integer threadNum)
             throws IOException, InterruptedException {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         try {
-            // Constantly poll the client's Blocking Queue in the Commands Queue
+            // Run as long as the client is connected
             while (outputThreadActive.get(threadNum)) {
                 BlockingQueue<String> commandsQueue = commandQueues.get(threadNum);
+                // Constantly poll the client's Blocking Queue in the Commands Queue
                 while (commandsQueue.peek() != null) {
                     String output = (String) commandsQueue.take();
                     out.println(output);
@@ -178,13 +177,10 @@ public class WhiteboardServer {
     }
 
     /**
-     * Listens to the client socket for messages and passes inputs to
-     * handleRequest to be handled.
+     * Listens to the client socket for messages and passes inputs to handleRequest to be handled.
      * 
-     * @param socket
-     *            represents the socket the client is connected to
-     * @throws IOException
-     *             if connection has an error or terminates unexpectedly
+     * @param socket represents the socket the client is connected to
+     * @throws IOException if connection has an error or terminates unexpectedly
      * @throws InterruptedException
      */
     private void handleClientInput(final Socket socket, final Integer threadNum)
@@ -197,8 +193,7 @@ public class WhiteboardServer {
                     in.close();
                     socket.close();
                     String[] tokens = line.split(" ");
-                    // Remove client from clientTothreadNumMap and from
-                    // clientToWhiteboardMap
+                    // Remove client from clientTothreadNumMap and from clientToWhiteboardMap
                     removeDisconnectedUser(tokens[1], threadNum);
                     clientToWhiteboardMap.remove(tokens[1]);
                     clientToThreadNumMap.remove(tokens[1]);
@@ -217,11 +212,8 @@ public class WhiteboardServer {
     /**
      * Parses client input and performs the appropriate operations.
      * 
-     * @param input
-     *            represents the text message from the client
-     * @param threadNum
-     *            represents the position of the client's blockingQueue in the
-     *            commandQueues list
+     * @param input represents the text message from the client
+     * @param threadNum represents the position of the client's blockingQueue in the commandQueues list
      */
     protected void handleRequest(final String input, final Integer threadNum) {
         String regex = "([^=]* selectBoard [^=]*)|([^=]* draw -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ [^=]* [^=]* [^=]*)|([^=]* erase -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+)|"
@@ -298,6 +290,7 @@ public class WhiteboardServer {
      * Sends the names of the current Whiteboards on the server to all clients
      */
     protected void getExistingWhiteboardsAll() {
+        // Gets all the names of the existing Whiteboards and send to all clients
         for (String whiteboard : whiteboardToCommandsMap.keySet()) {
             String whiteboards = "Existing Whiteboards " + whiteboard;
             for (BlockingQueue<String> commandQueue : commandQueues) {
@@ -311,10 +304,11 @@ public class WhiteboardServer {
     }
 
     /**
-     * Sends the names of the current Whiteboards on the server to one specified
-     * client
+     * Sends the names of the current Whiteboards on the server to one specified client
+     * @param represents the threadNum of the specified client
      */
     protected void getExistingWhiteboardsOne(final int threadNum) {
+        // Gets all the names of the existing Whiteboards
         for (String whiteboard : whiteboardToCommandsMap.keySet()) {
             String whiteboards = "Existing Whiteboards " + whiteboard;
             commandQueues.get(threadNum).offer(whiteboards);
@@ -325,7 +319,7 @@ public class WhiteboardServer {
 
     /**
      * Sends out to all clients the names of the other clients working on the
-     * same Whiteboard
+     * same Whiteboard.
      */
     protected void getSameUsersWhiteboard() {
         // Updating whiteboardToClientsMap
@@ -375,11 +369,11 @@ public class WhiteboardServer {
     }
 
     /**
-     * Sends out to all clients the names of the current clients on the same whiteboard
-     * and makes the disconnected client 
+     * Disconnects the specified client from the server and updates all collaborators with the 
+     * names of the active clients working on the same Whiteboard.
      * 
-     * @param client
-     *            the name of the client who disconnected
+     * @param client represents the name of the client who disconnected
+     * @param threadNum represents the thream number of the client
      */
     protected void removeDisconnectedUser(String client, final int threadNum) {
         // Updating whiteboardToClientsMap
@@ -406,6 +400,8 @@ public class WhiteboardServer {
      * PORT is an optional integer in the range 0 to 65535 inclusive, specifying
      * the port the server should be listening on for incoming connections. E.g.
      * "WhiteboardServer --port 1234" starts the server listening on port 1234.
+     * If no port integer is entered, the WhiteboardServer will listen on port 4444
+     * for incoming connections.
      * 
      * @throws IOException
      * 
@@ -446,8 +442,7 @@ public class WhiteboardServer {
     /**
      * Starts a WhiteboardServer running on the specified port.
      * 
-     * @param port
-     *            represents network port on which the server should listen.
+     * @param port represents network port on which the server should listen.
      */
     public static void runWhiteboardServer(final int port) throws IOException {
         WhiteboardServer server = new WhiteboardServer();
