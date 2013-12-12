@@ -36,6 +36,8 @@ public class Canvas extends JPanel{
      * Make a canvas.
      * @param width width in pixels
      * @param height height in pixels
+     * @param queue blocking queue, nonnull
+     * canvasWidth and canvasHeight are positive integers
      */
     public Canvas (int canvasWidth, int canvasHeight, BlockingQueue<String> queue) {
         width = canvasWidth;
@@ -47,6 +49,68 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
+    /**
+     * Sets the server color according to RGB values of the color
+     * Values for RGB must be between 0 and 255
+     */
+    protected void setServerColor(int red, int green, int blue){
+
+        serverTcc.setColor(red, green, blue);
+    }
+    
+    /**
+     * Gets the server color in an array containing the [red,blue,green] values
+     */
+    protected int[] getServerColor(){
+        int[] rgb = new int[3];
+        rgb[0] = (Integer)serverTcc.getColor().getRed();
+        rgb[1] = (Integer)serverTcc.getColor().getGreen();
+        rgb[2] = (Integer)serverTcc.getColor().getBlue();
+        return rgb;
+    }
+    
+    /**
+     * Sets the client color according to RGB values of the color
+     * Values for RGB must be between 0 and 255
+     */ 
+    protected void setClientColor(int red, int green, int blue){
+        tcc.setColor(red, green, blue);
+    }
+    
+    /**
+     * Gets the client color in an array containing the [red, green, blue] values
+     */
+    protected int[] getClientColor(){
+        int[] rgb = new int[3];
+        rgb[0] = (Integer)tcc.getColor().getRed();
+        rgb[1] = (Integer)tcc.getColor().getGreen();
+        rgb[2] = (Integer)tcc.getColor().getBlue();
+        return rgb;
+    }
+    
+    /**
+     * get width of canvas
+     * 
+     */
+    protected int getCanvasWidth(){
+        return width;
+    }
+    
+    /**
+     * get height of canvas
+     * 
+     */ 
+    protected int getCanvasHeight(){
+        return height;
+    }
+    
+    /**
+     * gets the drawMode
+     */
+    protected boolean getDrawMode(){
+        return drawMode;
+    }
+    
     /**
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
@@ -62,10 +126,10 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
-    /*
+    /**
      * Make the drawing buffer.
      */
-    private void makeDrawingBuffer() {
+    protected void makeDrawingBuffer() {
         drawingBuffer = createImage(getWidth(), getHeight());
         fillWithWhite();
     }
@@ -85,14 +149,14 @@ public class Canvas extends JPanel{
         whiteboardName = newName;
     }
     
-    /*
+    /**
      * Get Whiteboard name
      */ 
     protected String getWhiteboardName(){
         return whiteboardName;
     }
     
-    /*
+    /**
      * Make the drawing buffer entirely white.
      */
     protected void fillWithWhite() {
@@ -122,7 +186,6 @@ public class Canvas extends JPanel{
     /*
      * Getter for strokestate
      */
-    
     protected int getStrokeState(){
         return strokeSize;
     }
@@ -133,6 +196,7 @@ public class Canvas extends JPanel{
      */
     protected void drawLineSegment(int x1, int y1, int x2, int y2) {
         if (drawingBuffer == null) {
+            System.out.println("error 1");
             makeDrawingBuffer();
             System.out.println("make a drawing buffer");
         }
@@ -147,8 +211,7 @@ public class Canvas extends JPanel{
         String blue = Integer.toString(tcc.getColor().getBlue());
 
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
-
+        
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
@@ -170,7 +233,6 @@ public class Canvas extends JPanel{
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(strokeSize));
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
@@ -179,7 +241,7 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
-    /*
+    /**
      * Draws a line segment between two points (x1,y1) and (x2,y2) 
      * with a specified stroke size and color (in RGB), specified 
      * in pixels relative to the upper left corner of the drawing buffer
@@ -199,7 +261,6 @@ public class Canvas extends JPanel{
         //colors in RGB
 
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Drawing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2 + " Stroke Size " + strokeSize + " R " + red + " G " + green + " B " + blue);
 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
@@ -207,7 +268,7 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
-    /*
+    /**
      * Draw a white line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
@@ -219,14 +280,14 @@ public class Canvas extends JPanel{
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(newStroke));
         g.drawLine(x1, y1, x2, y2);
-        //        System.out.println("Erasing line x1 " + x1 + " y1 " + y1 + " x2 " + x2 + " y2 " + y2);
+ 
         // IMPORTANT!  every time we draw on the internal drawing buffer, we
         // have to notify Swing to repaint this component on the screen.
         this.repaint();
         checkRep();
     }
 
-    /*
+    /**
      * Add the mouse listener that supports the user's freehand drawing.
      */
     private void addDrawingController() {
@@ -235,23 +296,21 @@ public class Canvas extends JPanel{
         addMouseMotionListener(controller);
     }
     
-    /*
+    /**
      * Gets the drawingBuffer
      */
-    
     public Image getDrawingBuffer(){
         return drawingBuffer;
     }
     
-    /*
+    /**
      * get outputCommandQueue
      */
-
     public BlockingQueue<String> getCommandQueue(){
         return outputCommandsQueue;
     }
     
-    /*
+    /**
      * DrawingController handles the user's freehand drawing.
      */
     private class DrawingController implements MouseListener, MouseMotionListener {
@@ -259,7 +318,7 @@ public class Canvas extends JPanel{
         // draw a line segment from that last point to the point of the next mouse event.
         private int lastX, lastY; 
 
-        /*
+        /**
          * When left mouse button is pressed down, start drawing.
          */
         public void mousePressed(MouseEvent e) {
@@ -272,7 +331,7 @@ public class Canvas extends JPanel{
             }
         }
 
-        /*
+        /**
          * When mouse moves while a button is pressed down,
          * draw a line segment.
          */
