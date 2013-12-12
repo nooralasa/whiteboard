@@ -96,7 +96,6 @@ public class WhiteboardGUI extends JFrame {
      * CANNOT contain spaces or just be an empty string
      * @param String message represents the special message to attach depending on the situation
      */
-
     protected String getUsername(String message){
         final JFrame popup = new JFrame(); // Popup asking for Username
         Object[] possibilities = null;

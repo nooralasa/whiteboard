@@ -29,6 +29,7 @@ public class ButtonPanel extends JPanel {
     static final int SLIDER_MIN= 0;
     static final int SLIDER_MAX = 30;
     static final int SLIDER_INIT = 0; 
+    
     /**
      * Button panel for the GUI containing the Draw button, Erase button, Help button, and Choose Color button.
      * Also contains a slider to select strokeSize. Contains appropriate labels
@@ -36,7 +37,6 @@ public class ButtonPanel extends JPanel {
      * @param int height
      * @param WhiteboardGUI whiteboard
      */
-
     public ButtonPanel (int width, int height, final WhiteboardGUI whiteboard){
         this.whiteboard = whiteboard;
         this.canvas = whiteboard.canvas;
