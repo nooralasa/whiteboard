@@ -241,7 +241,7 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
-    /*
+    /**
      * Draws a line segment between two points (x1,y1) and (x2,y2) 
      * with a specified stroke size and color (in RGB), specified 
      * in pixels relative to the upper left corner of the drawing buffer
@@ -268,7 +268,7 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
-    /*
+    /**
      * Draw a white line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
