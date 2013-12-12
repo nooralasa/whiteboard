@@ -8,6 +8,7 @@ import org.junit.Test;
 /**
  * Canvas Test runs the JUnit tests for the Canvas class. 
  * All methods that do not require user actions directly are tested.
+ * drawLineSegment/eraseLineSegment are tested manually by drawing on the canvas
  **/
 public class CanvasTest {
     /**
