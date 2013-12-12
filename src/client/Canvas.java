@@ -55,6 +55,7 @@ public class Canvas extends JPanel{
      */
     protected void setServerColor(int red, int green, int blue){
         serverTcc.setColor(red, green, blue);
+        checkRep();
     }
     
     /**
@@ -74,6 +75,7 @@ public class Canvas extends JPanel{
      */ 
     protected void setClientColor(int red, int green, int blue){
         tcc.setColor(red, green, blue);
+        checkRep();
     }
     
     /**
@@ -145,6 +147,7 @@ public class Canvas extends JPanel{
      */
     protected void setWhiteboardName(String newName){
         whiteboardName = newName;
+        checkRep();
     }
     
     /**
