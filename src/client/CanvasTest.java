@@ -58,13 +58,6 @@ public class CanvasTest {
         canvas.setStrokeState(-199);
         assertEquals(0, canvas.getStrokeState());
     }
-    @Test
-    public void testSetStrokeStateMININT(){
-        BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
-        Canvas canvas = new Canvas(100,100, outputCommandsQueue);
-        canvas.setStrokeState(Integer.MIN_VALUE);
-        assertEquals(Integer.MIN_VALUE, canvas.getStrokeState());
-    }
     
     /**
      * Set whiteboard name test sets the whiteboard name to a string with numbers
