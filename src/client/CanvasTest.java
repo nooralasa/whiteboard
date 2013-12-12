@@ -165,8 +165,8 @@ public class CanvasTest {
     public void getAndSetClientColorDiffValues2(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
         Canvas canvas = new Canvas(100,100, outputCommandsQueue);
-        canvas.setClientColor(235,262,134);
-        int[] expected = {235,262,134};
+        canvas.setClientColor(235,234,134);
+        int[] expected = {235,234,134};
 
         assertEquals(true, expected.length == canvas.getClientColor().length);
         assertEquals(true, expected[0] == canvas.getClientColor()[0]);
@@ -225,8 +225,8 @@ public class CanvasTest {
     public void getAndSetServerColorDiffValues2(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
         Canvas canvas = new Canvas(100,100, outputCommandsQueue);
-        canvas.setServerColor(235,262,134);
-        int[] expected = {235,262,134};
+        canvas.setServerColor(235,235,134);
+        int[] expected = {235,235,134};
 
         assertEquals(true, expected.length == canvas.getServerColor().length);
         assertEquals(true, expected[0] == canvas.getServerColor()[0]);
