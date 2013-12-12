@@ -1,28 +1,23 @@
 package client;
-import static org.junit.Assert.*;
 
-import java.awt.Image;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import static org.junit.Assert.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-
 import org.junit.Test;
 
 /**
  * Canvas Test runs the JUnit tests for the Canvas class. 
- * The drawLineSegment() and eraseLineSegment() tests are tested.
- * test fillWithWhite() entire board
- * 
+ * All methods that do not require user actions directly are tested.
  **/
 public class CanvasTest {
     /**
-     * Tests the set stroke state, setting values greater than or equal to zero.
-     * Negative values get set to zero
-     * The partition space is split up testing zero, small integers, and the MAX_INT
+     * TESTING setStrokeState
+     * 
+     * Partition the Input Space as follows:
+     * Stroke State: 0, Negative Int, Small Positive Int, Large Positive Int, MAX_INT
+     * 
+     * Note that negative values get set to zero.
      */
-
     @Test
     public void testSetStrokeStateMAXVALUE(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
@@ -30,6 +25,7 @@ public class CanvasTest {
         canvas.setStrokeState(Integer.MAX_VALUE);
         assertEquals(Integer.MAX_VALUE, canvas.getStrokeState());
     }
+    
     @Test
     public void testSetStrokeStateSmallInteger(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
@@ -37,6 +33,7 @@ public class CanvasTest {
         canvas.setStrokeState(5);
         assertEquals(5, canvas.getStrokeState());
     }
+    
     @Test
     public void testSetStrokeStateLargeInteger(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
@@ -44,6 +41,7 @@ public class CanvasTest {
         canvas.setStrokeState(2627);
         assertEquals(2627, canvas.getStrokeState());
     }
+    
     @Test
     public void testSetStrokeStateZero(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
@@ -51,6 +49,7 @@ public class CanvasTest {
         canvas.setStrokeState(0);
         assertEquals(0, canvas.getStrokeState());
     }
+    
     @Test
     public void testSetStrokeStateNegativeInteger(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
@@ -60,8 +59,12 @@ public class CanvasTest {
     }
     
     /**
-     * Set whiteboard name test sets the whiteboard name to a string with numbers
-     * different capitalizations, numbers, and special characters. Spaces are covered by the GUI input
+     * TESTING setWhiteboardName
+     * 
+     * Partition the input space as follows:
+     * Name:    lowercase, uppercase, numbers, special characters
+     * 
+     * Spaces are prevented on the Server end.
      * (and so do not need to be tested in the canvas tests)
      */
     @Test
@@ -73,6 +76,7 @@ public class CanvasTest {
         String outcome = canvas.getWhiteboardName();
         assertEquals(outcome,"testboard");
     }
+    
     @Test
     public void setWhiteboardNameTestCapitals(){
         //tests multiple settings of the whiteboard name (on the same canvas) to a string
@@ -82,6 +86,7 @@ public class CanvasTest {
         String outcome = canvas.getWhiteboardName();
         assertEquals(outcome,"SdWdBca");
     }
+    
     @Test
     public void setWhiteboardNameTestSpecialChar(){
         //tests multiple settings of the whiteboard name (on the same canvas) to a string
@@ -91,6 +96,7 @@ public class CanvasTest {
         String outcome = canvas.getWhiteboardName();
         assertEquals(outcome,"@#^2#df2@");
     }
+    
     @Test
     public void setWhiteboardNameTestNumbers(){
         //tests multiple settings of the whiteboard name (on the same canvas) to a string
@@ -100,6 +106,7 @@ public class CanvasTest {
         String outcome = canvas.getWhiteboardName();
         assertEquals(outcome,"9219523692362");
     }
+    
     @Test
     public void setWhiteboardNameTest(){
         //tests multiple settings of the whiteboard name (on the same canvas) to a string
@@ -109,9 +116,12 @@ public class CanvasTest {
         String outcome = canvas.getWhiteboardName();
         assertEquals(outcome,"test_BOARDA_SDGAW@");
     }
+    
     /**
-     * Test values between 0 and 255 for setting the client color.
-     * Test 0,0,0 and 255,255,255 as well as different values in between
+     * TESTING setClientColor and getClientColor
+     * 
+     * Partition the input space as follows:
+     * ClientColorValues:   All 0, all 255, different combinations in between. 
      */
     @Test
     public void getAndSetClientColor000(){
@@ -119,39 +129,34 @@ public class CanvasTest {
         Canvas canvas = new Canvas(100,100, outputCommandsQueue);
         canvas.setClientColor(0,0,0);
         int[] expected = {0,0,0};
-
         assertEquals(true, expected.length == canvas.getClientColor().length);
         assertEquals(true, expected[0] == canvas.getClientColor()[0]);
         assertEquals(true, expected[1] == canvas.getClientColor()[1]);
-        assertEquals(true, expected[2] == canvas.getClientColor()[2]);
-        
+        assertEquals(true, expected[2] == canvas.getClientColor()[2]);  
     }
+    
     @Test
     public void getAndSetClientColor255255255(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
         Canvas canvas = new Canvas(100,100, outputCommandsQueue);
         canvas.setClientColor(255,255,255);
         int[] expected = {255,255,255};
-
         assertEquals(true, expected.length == canvas.getClientColor().length);
         assertEquals(true, expected[0] == canvas.getClientColor()[0]);
         assertEquals(true, expected[1] == canvas.getClientColor()[1]);
-        assertEquals(true, expected[2] == canvas.getClientColor()[2]);
-
-        
+        assertEquals(true, expected[2] == canvas.getClientColor()[2]);        
     }
+    
     @Test
     public void getAndSetClientColorDiffValues(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
         Canvas canvas = new Canvas(100,100, outputCommandsQueue);
         canvas.setClientColor(100,255,234);
         int[] expected = {100,255,234};
-
         assertEquals(true, expected.length == canvas.getClientColor().length);
         assertEquals(true, expected[0] == canvas.getClientColor()[0]);
         assertEquals(true, expected[1] == canvas.getClientColor()[1]);
-        assertEquals(true, expected[2] == canvas.getClientColor()[2]);
-        
+        assertEquals(true, expected[2] == canvas.getClientColor()[2]);     
     }
     
     @Test
@@ -165,13 +170,14 @@ public class CanvasTest {
         assertEquals(true, expected[0] == canvas.getClientColor()[0]);
         assertEquals(true, expected[1] == canvas.getClientColor()[1]);
         assertEquals(true, expected[2] == canvas.getClientColor()[2]);
-        
     }
     
     
     /**
-     * Tests the get and set server color methods. 
-     * Test 0,0,0 and 255,255,255 as well as different values in between
+     * TESTING getServerColor and setServerColor
+     * 
+     * Partition the input space as follows:
+     * ServerColorValues:   All 0, all 255, different combinations in between. 
      */
     @Test
     public void getAndSetServerColor000(){
@@ -184,8 +190,8 @@ public class CanvasTest {
         assertEquals(true, expected[0] == canvas.getServerColor()[0]);
         assertEquals(true, expected[1] == canvas.getServerColor()[1]);
         assertEquals(true, expected[2] == canvas.getServerColor()[2]);
-        
     }
+    
     @Test
     public void getAndSetServerColor255255255(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
@@ -197,9 +203,8 @@ public class CanvasTest {
         assertEquals(true, expected[0] == canvas.getServerColor()[0]);
         assertEquals(true, expected[1] == canvas.getServerColor()[1]);
         assertEquals(true, expected[2] == canvas.getServerColor()[2]);
-
-        
     }
+    
     @Test
     public void getAndSetServerColorDiffValues(){
         BlockingQueue<String> outputCommandsQueue = new ArrayBlockingQueue<String>(10000000); ;
@@ -211,7 +216,6 @@ public class CanvasTest {
         assertEquals(true, expected[0] == canvas.getServerColor()[0]);
         assertEquals(true, expected[1] == canvas.getServerColor()[1]);
         assertEquals(true, expected[2] == canvas.getServerColor()[2]);
-        
     }
     
     @Test
@@ -224,12 +228,13 @@ public class CanvasTest {
         assertEquals(true, expected.length == canvas.getServerColor().length);
         assertEquals(true, expected[0] == canvas.getServerColor()[0]);
         assertEquals(true, expected[1] == canvas.getServerColor()[1]);
-        assertEquals(true, expected[2] == canvas.getServerColor()[2]);
-        
+        assertEquals(true, expected[2] == canvas.getServerColor()[2]);  
     }
     
     /**
-     * Tests the fields in the canvas constructor. Tests to make sure that draw mode
+     * TESTING Canvas Constructor
+     * 
+     * Tests to make sure that draw mode
      * defaults to true, the canvas width and heights are placed properly. The canvas
      * constructor does not take in values less than zero (by specifications)
      */
@@ -243,6 +248,5 @@ public class CanvasTest {
         assertEquals(100,canvas.getCanvasHeight());
         //check initial drawMode (true by default)
         assertEquals(true, canvas.getDrawMode());
-        
     }
 }

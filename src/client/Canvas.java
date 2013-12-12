@@ -54,7 +54,6 @@ public class Canvas extends JPanel{
      * Values for RGB must be between 0 and 255
      */
     protected void setServerColor(int red, int green, int blue){
-
         serverTcc.setColor(red, green, blue);
     }
     
@@ -89,29 +88,28 @@ public class Canvas extends JPanel{
     }
     
     /**
-     * get width of canvas
-     * 
+     * Returns the width of the Canvas.
      */
     protected int getCanvasWidth(){
         return width;
     }
     
     /**
-     * get height of canvas
-     * 
+     * Returns the height of the Canvas.
      */ 
     protected int getCanvasHeight(){
         return height;
     }
     
     /**
-     * gets the drawMode
+     * Returns the DrawMode.
      */
     protected boolean getDrawMode(){
         return drawMode;
     }
     
     /**
+     * Paints the Component.
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
@@ -136,21 +134,21 @@ public class Canvas extends JPanel{
 
     /**
      * Returns the tcc.
-     * @return
      */
     protected JColorChooser getTcc(){
         return tcc;
     }
     
-    /*
-     * Sets the whiteboard name to a string
+    /**
+     * Sets the Whiteboard Name
+     * @param newName represents the new Whiteboard Name
      */
     protected void setWhiteboardName(String newName){
         whiteboardName = newName;
     }
     
     /**
-     * Get Whiteboard name
+     * Gets Whiteboard name
      */ 
     protected String getWhiteboardName(){
         return whiteboardName;
@@ -171,8 +169,8 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
-    /*
-     * Draw line/stroke segment size
+    /**
+     * Sets the strokeSize
      */
     protected void setStrokeState(int value) {
         if(value >= 0){
@@ -183,14 +181,14 @@ public class Canvas extends JPanel{
         checkRep();
     }
     
-    /*
-     * Getter for strokestate
+    /**
+     * Returns strokeSize
      */
     protected int getStrokeState(){
         return strokeSize;
     }
 
-    /*
+    /**
      * Draw a line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */
@@ -221,7 +219,7 @@ public class Canvas extends JPanel{
         checkRep();
     }
 
-    /*
+    /**
      * Draw a white line between two points (x1, y1) and (x2, y2), specified in
      * pixels relative to the upper-left corner of the drawing buffer.
      */

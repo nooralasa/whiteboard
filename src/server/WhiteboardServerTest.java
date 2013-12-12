@@ -17,7 +17,8 @@ import org.junit.Test;
  */
 public class WhiteboardServerTest {
     /**
-     * TESTING createBoards Asserts that Board1, Board2, and Board3 are created.
+     * TESTING createBoards 
+     * Asserts that Board1, Board2, and Board3 are created.
      */
     @Test
     public void createBoardsTest() throws IOException {
@@ -34,12 +35,14 @@ public class WhiteboardServerTest {
      * of commands, longer ones are manually tested) (and
      * getExistingWhiteboardsAll, getExistingWhiteboardsOne with the addBoard
      * and newUsername commands) (and getSameUsersWhiteboard with the
-     * selectBoard command) Partition the input space as follows: Input: new
-     * username (doesn't exist), new username exists, addBoard whiteboard
-     * exists, addBoard whiteboard doesn't exist selectBoard with no user,
-     * selectBoard with no board, selectBoard normal draw single user, erase
-     * single user (multiple users is tested with telnet) command in regex but
-     * no specified action, command not in regular expression
+     * selectBoard command) 
+     * 
+     * Partition the input space as follows: 
+     * Input:   newusername (doesn't exist), new username exists, addBoard whiteboard
+     *          exists, addBoard whiteboard doesn't exist selectBoard with no user,
+     *          selectBoard with no board, selectBoard normal draw single user, erase
+     *          single user (multiple users is tested with telnet) command in regex but
+     *          no specified action, command not in regular expression
      * 
      * @throws InterruptedException
      */
