@@ -152,8 +152,10 @@ public class WhiteboardClient {
         String[] tokens = input.split(" ");
         if (tokens.length > 1) {
             if (tokens[0].equals("Username")){
+                // Prompts for a new username
                 outputCommandsQueue.offer(whiteboards.getUsername("Username already taken.\n"));
             } else if (((tokens[0].equals("Select")) && tokens[2].equals("whiteboard")) || (tokens[0].equals("Whiteboard") && tokens[2].equals("exists"))){
+                // Prompts to select a Whiteboard
                 whiteboards.chooseWhiteboardPopup();
             } else if (tokens[1].equals("on") && tokens[2].equals("board")) {
                 //updates the client's whiteboard
@@ -162,29 +164,39 @@ public class WhiteboardClient {
                 whiteboards.canvas.setWhiteboardName(tokens[3]);              
             } else if ((tokens[0].equals("Existing")) && (tokens[1].equals("Whiteboards"))){
                 if (!whiteboards.getExistingWhiteboards().contains(tokens[2])){
+                    // Add to list of existing Whiteboards if not already in the list
                     whiteboards.getExistingWhiteboards().add(tokens[2]);
                 }
             } else if (tokens[0].equals("Updating") && tokens[1].equals("Clients")){
+                // Clears the usersInWhiteboard JList
                 usersInWhiteboard.clear();
             } else if (tokens[0].equals("sameClient")){
                 if (!usersInWhiteboard.contains(tokens[1])){
+                    // Adds to list of users in whiteboard if not already in there
                     usersInWhiteboard.add(tokens[1]);
                 }
             } else if (tokens[0].equals("removeClient")){
                 if (usersInWhiteboard.contains(tokens[1])){
+                    // Removes client from the list of users in whiteboard and updates JList in Sidepanel
                     usersInWhiteboard.remove(tokens[1]);
                     whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
                 }
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("whiteboard"))){
                 if (!(whiteboardName != null)){
+                    // Sets default to Board1 to prevent null pointer exception
                     whiteboardName = "Board1";
                 }
+                // Updates SidePanel
                 whiteboards.getSidePanel().updateWhiteboardsList(whiteboards.getExistingWhiteboards(), whiteboardName);
             } else if ((tokens[0].equals("Done")) && (tokens[1].equals("sending")) && (tokens[2].equals("client"))){
+                // Updates SidePanel collaborators Jlist
                 whiteboards.getSidePanel().updateClientsList(usersInWhiteboard);
             } else if (tokens[0].equals("Board") && tokens[2].equals("added")) {
+                // Sets whiteboard name
                 whiteboardName = tokens[1];
+                // Sends command to server to selectBoard
                 outputCommandsQueue.offer(whiteboards.clientName + " selectBoard " + tokens[1]);
+                // Updates GUI
                 whiteboards.canvas.setWhiteboardName(tokens[1]);              
                 whiteboards.updateTitle(whiteboardName);
             } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("draw"))){
@@ -196,6 +208,7 @@ public class WhiteboardClient {
                 String redValue = tokens[7];
                 String greenValue = tokens[8];
                 String blueValue = tokens[9];
+                // Draws command in the canvas
                 whiteboards.getCanvas().commandDraw(x1, y1, x2, y2, newStrokeSize, redValue, greenValue, blueValue);
             } else if (tokens[0].equals(whiteboardName) && (tokens[1].equals("erase"))){
                 int x1 = Integer.parseInt(tokens[2]);
@@ -203,6 +216,7 @@ public class WhiteboardClient {
                 int x2 = Integer.parseInt(tokens[4]);
                 int y2 = Integer.parseInt(tokens[5]);
                 int newStrokeSize = Integer.parseInt(tokens[6]);
+                // Erases command in the command
                 whiteboards.getCanvas().commandErase(x1, y1, x2, y2, newStrokeSize);            
             } else if (tokens[2].equals("Server") && (tokens[3].equals("Regex"))){
                 System.err.println("Command " + input); // Don't need to do anything      

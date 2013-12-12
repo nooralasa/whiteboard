@@ -305,7 +305,7 @@ public class Canvas extends JPanel{
     }
     
     /**
-     * get outputCommandQueue
+     * Gets outputCommandQueue
      */
     public BlockingQueue<String> getCommandQueue(){
         return outputCommandsQueue;
